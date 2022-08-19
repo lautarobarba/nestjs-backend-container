@@ -1,0 +1,13 @@
+import { Injectable } from '@nestjs/common';
+import { genSalt, hash, compare } from 'bcryptjs';
+
+@Injectable()
+export class AppService {
+	async getWelcome(): Promise<string> {
+		// Busco el año actual
+		const date: Date = new Date();
+		const year: string = date.getFullYear().toString();
+
+		return `<h1 style="text-align: center;">API NOTAS</h1> <p style="position: absolute; bottom: 20px; text-align: center; width: 99%;">Documentación disponible en <a href="/api/docs">/api/docs</a>.</p> <p style="position: absolute; bottom: 0px; text-align: center; width: 99%;">${year} - Notas</p>`;
+	}
+}

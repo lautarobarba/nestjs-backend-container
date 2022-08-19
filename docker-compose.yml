@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  dev:
+    container_name: ${CONTAINER_NAME}
+    image: ${CONTAINER_NAME}:1.0.0
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: bash -c "npm install && npm run start"
+    restart: always
+    env_file: .env
+    environment:
+      - DB_HOST=host.docker.internal
+    ports:
+      - ${BACK_PORT}:3000
+    volumes:
+      - ./backend:/app
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  prod:
+    container_name: ${CONTAINER_NAME}
+    image: ${CONTAINER_NAME}:1.0.0
+    build:
+      context: .
+      target: production
+      dockerfile: ./Dockerfile
+    command: bash -c "npm install && npm run start:prod"
+    restart: always
+    env_file: .env
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_CONNECTION=mysql
+    ports:
+      - ${BACK_PORT}:3000
+    volumes:
+      - ./backend:/app
+    extra_hosts:
+      - host.docker.internal:host-gateway
