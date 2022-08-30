@@ -1,15 +1,15 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from 'modules/user/user.service';
+import {Repository} from 'typeorm';
 import { CreateNoteDto, UpdateNoteDto } from './note.dto';
 import { Note } from './note.entity';
-import { NoteRepository } from './note.repository';
 
 @Injectable()
 export class NoteService {
 	constructor(
-		@InjectRepository(NoteRepository)
-		private readonly _noteRepository: NoteRepository,
+		@InjectRepository(Note)
+		private readonly _noteRepository: Repository<Note>,
 		private readonly _userService: UserService
 	) {}
 

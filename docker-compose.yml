@@ -12,7 +12,6 @@ services:
     restart: always
     env_file: .env
     environment:
-      - DB_CONNECTION=postgres
       - DB_HOST=host.docker.internal
     ports:
       - ${BACK_PORT}:3000
@@ -32,7 +31,6 @@ services:
     restart: always
     env_file: .env
     environment:
-      - DB_CONNECTION=postgres
       - DB_HOST=host.docker.internal
     ports:
       - ${BACK_PORT}:3000
