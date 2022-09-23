@@ -17,8 +17,8 @@ async function bootstrap() {
 
 	// Configuración para swagger
 	const config = new DocumentBuilder()
-		.setTitle('API NOTAS')
-		.setDescription('API notas')
+		.setTitle('API NESTJS')
+		.setDescription('API nestjs')
 		.setVersion('1.0')
 		.addBearerAuth()
 		.build();
