@@ -1,10 +1,13 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from 'app.module';
 import * as cookieParser from 'cookie-parser';
+import { join } from 'path';
+
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
 	// CORS
 	app.enableCors();
@@ -14,6 +17,13 @@ async function bootstrap() {
 
 	// Configuro el prefijo para todas las rutas
 	app.setGlobalPrefix('api');
+
+	// Archivos estaticos
+	app.useStaticAssets(join(__dirname, '..', 'emails/assets'), {
+		prefix: '/api/assets/',
+	});
+	app.setBaseViewsDir(join(__dirname, '..', 'emails/templates'));
+	app.setViewEngine('hbs');
 
 	// Configuración para swagger
 	const config = new DocumentBuilder()

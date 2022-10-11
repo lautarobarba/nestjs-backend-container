@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	{{!-- 
+		Para importar CSS tengo que usar la ruta del host del contenedor
+			o alguna ruta estática de donde handlebars pueda ejecutar una 
+			request e injecta el css antes de enviarlo
+		
+		Ejemplos:
+			<link rel="stylesheet" href="http://host.docker.internal/api/assets/css/styles.css">
+			<link rel="stylesheet" href="http://host.docker.internal:7000/api/assets/css/styles.css">
+			<link rel="stylesheet" href="{{ serverUrl }}/api/assets/css/styles.css">
+	--}}
+	
+
+	<link rel="stylesheet" href="http://host.docker.internal:7001/api/assets/css/styles.css">
+
+	<title>Titulo Head</title>
+
+</head>
+<body>
+	<p>Hola {{ name }},</p>
+	<p>Probando correos</p>
+	<img src="{{ serverUrl }}/api/assets/images/logo.png" >
+</body>
+</html>

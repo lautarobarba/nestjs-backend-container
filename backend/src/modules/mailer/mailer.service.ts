@@ -5,8 +5,9 @@ import { MailerService as MailerServiceNode } from '@nestjs-modules/mailer';
 export class MailerService {
 	constructor(private mailerServiceNode: MailerServiceNode) {}
 
-	async sendTest(emailTo: string) {
+	async sendTest(serverUrl: string, emailTo: string) {
 		// return `This action send a test email to ${emailTo}`;
+
 		await this.mailerServiceNode.sendMail({
 			to: emailTo,
 			// from: '"Support Team" <support@example.com>', // override default from
@@ -14,6 +15,7 @@ export class MailerService {
 			template: './test-template', // `.hbs` extension is appended automatically
 			context: {
 				// ✏️ filling curly brackets with content
+				serverUrl: serverUrl,
 				name: 'Lautaro :)',
 			},
 		});

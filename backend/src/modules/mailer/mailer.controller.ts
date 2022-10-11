@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, Patch, Param, Delete, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 import { EmailTestDto } from './mailer.dto';
 import { MailerService } from './mailer.service';
 
@@ -8,10 +9,13 @@ import { MailerService } from './mailer.service';
 export class MailerController {
   constructor(private readonly mailerService: MailerService) {}
 
-  @Post()
+  @Post('test')
   @UseInterceptors(ClassSerializerInterceptor)
-  async create(@Body() emailTestDto: EmailTestDto) {
-    console.log(emailTestDto.emailTo);
-    return this.mailerService.sendTest(emailTestDto.emailTo);
+  async create(
+    @Req() request: Request,
+    @Body() emailTestDto: EmailTestDto
+  ) {
+    const serverUrl: string = `${request.protocol}://${request.get('Host')}`;
+    return this.mailerService.sendTest(serverUrl, emailTestDto.emailTo);
   }
 }
