@@ -8,7 +8,7 @@ import {
 	UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Note } from 'modules/note/note.entity';
+import { Note } from '../note/note.entity';
 
 export enum EStatus {
 	ACTIVE = 'ACTIVE',

@@ -8,7 +8,7 @@ import {
 	ManyToOne,
 	JoinColumn,
 } from 'typeorm';
-import { User } from 'modules/user/user.entity';
+import { User } from '../user/user.entity';
 
 @Entity('notes')
 export class Note extends BaseEntity {
