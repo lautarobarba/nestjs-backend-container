@@ -31,8 +31,8 @@ export class AuthController {
 
 	@Post('register')
 	@UseInterceptors(ClassSerializerInterceptor)
-	@ApiResponse({ status: 201, description: 'User created', type: SessionDto })
-	@ApiResponse({ status: 409, description: 'Error: Conflict' })
+	@ApiResponse({ status: HttpStatus.CREATED, description: 'User created', type: SessionDto })
+	@ApiResponse({ status: HttpStatus.CONFLICT, description: 'Error: Conflict' })
 	async register(
 		@Res({ passthrough: true }) response: Response,
 		@Body() createUserDto: CreateUserDto
@@ -43,9 +43,9 @@ export class AuthController {
 
 	@Post('login')
 	@UseInterceptors(ClassSerializerInterceptor)
-	@ApiResponse({ status: 200, description: 'User logged in', type: SessionDto })
-	@ApiResponse({ status: 404, description: 'Error: Not Found' })
-	@ApiResponse({ status: 401, description: 'Error: Unauthorized' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'User logged in', type: SessionDto })
+	@ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Error: Not Found' })
+	@ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Error: Unauthorized' })
 	async login(
 		@Res({ passthrough: true }) response: Response,
 		@Body() loginDto: LoginDto
@@ -57,7 +57,7 @@ export class AuthController {
 	@Post('refresh')
 	@UseGuards(RefreshTokenGuard)
 	@ApiBearerAuth()
-	@ApiResponse({ status: 200, description: 'New token', type: SessionDto })
+	@ApiResponse({ status: HttpStatus.OK, description: 'New token', type: SessionDto })
 	async refreshTokens(@Req() request: Request): Promise<SessionDto> {
 		const { payload, refreshToken } = request.user as {
 			payload: IJWTPayload;
@@ -71,9 +71,9 @@ export class AuthController {
 	@Post('logout')
 	@UseGuards(AccessTokenGuard)
 	@ApiBearerAuth()
-	@ApiResponse({ status: 200, description: 'User logged out' })
-	@ApiResponse({ status: 404, description: 'Error: Not Found' })
-	@ApiResponse({ status: 401, description: 'Error: Unauthorized' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'User logged out' })
+	@ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Error: Not Found' })
+	@ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Error: Unauthorized' })
 	async logout(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
@@ -87,7 +87,7 @@ export class AuthController {
 	@Get('test')
 	@UseGuards(AccessTokenGuard)
 	@ApiBearerAuth()
-	@ApiResponse({ status: 200, description: 'User logged' })
+	@ApiResponse({ status: HttpStatus.OK, description: 'User logged' })
 	async getPrivate(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
