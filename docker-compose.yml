@@ -1,5 +1,5 @@
 version: "3.8"
-name: ${CONTAINER_NAME}
+name: nest_back
 services:
   dev:
     container_name: ${CONTAINER_NAME}
