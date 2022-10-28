@@ -36,7 +36,10 @@ $ docker container exec -it prod/dev bash
 ## Instalar nuevas librerías
 
 ```bash
+$ # Prod
 $ docker compose exec -it dev bash -c "npm install NPM_PACKAGE"
+$ # Or dev
+$ docker compose exec -it dev bash -c "npm install --save-dev NPM_PACKAGE"
 ```
 
 ## Recursos NestJS
