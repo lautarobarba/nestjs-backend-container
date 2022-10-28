@@ -14,12 +14,14 @@ import {
 	HttpStatus,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
+import { JwtAuthenticationGuard } from '../auth/guards/jwt-authentication.guard';
 import { Response, Request } from 'express';
 import { IJWTPayload } from '../auth/jwt-payload.interface';
 import { UpdateUserDto } from './user.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
+import { RoleGuard } from 'modules/role/role.guard';
+import { Role } from 'modules/role/role.enum';
 
 @ApiTags('Usuarios')
 @Controller('user')
@@ -27,9 +29,9 @@ export class UserController {
 	constructor(private readonly _userService: UserService) {}
 
 	@Get()
-	@UseGuards(AccessTokenGuard)
-	@ApiBearerAuth()
+	@UseGuards(RoleGuard([Role.ADMIN]))
 	@UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
 	@ApiResponse({
 		status: HttpStatus.OK,
 		type: User,
@@ -39,21 +41,18 @@ export class UserController {
 		status: HttpStatus.UNAUTHORIZED,
 		description: 'Error: Unauthorized',
 	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Error: Forbidden',
+	})
 	async findAll(
-		@Req() request: Request,
-		@Res({ passthrough: true }) response: Response
+		// @Res({ passthrough: true }) response: Response
 	): Promise<User[]> {
-		// const session: IJWTPayload = request.user as IJWTPayload;
-		// const user: User = await this._userService.findOne(session.sub);
-		// if (!user.isAdmin) {
-		// 	throw new UnauthorizedException('Not admin');
-		// }
-		// response.status(HttpStatus.OK);
 		return this._userService.findAll();
 	}
 
 	@Get(':id')
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiResponse({
@@ -83,7 +82,7 @@ export class UserController {
 	}
 
 	@Patch()
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiResponse({
@@ -113,7 +112,7 @@ export class UserController {
 	}
 
 	@Delete(':id')
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiResponse({

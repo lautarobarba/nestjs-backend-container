@@ -17,9 +17,9 @@ import { User } from 'modules/user/user.entity';
 import { UserService } from 'modules/user/user.service';
 import { LoginDto, SessionDto } from './auth.dto';
 import { AuthService } from './auth.service';
-import { AccessTokenGuard } from './guards/accessToken.guard';
+import { JwtAuthenticationGuard } from './guards/jwt-authentication.guard';
 import { IJWTPayload } from './jwt-payload.interface';
-import { RefreshTokenGuard } from './guards/refreshToken.guard';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -90,7 +90,7 @@ export class AuthController {
 	}
 
 	@Post('logout')
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@ApiResponse({ 
 		status: HttpStatus.OK, 
@@ -115,7 +115,7 @@ export class AuthController {
 	}
 
 	@Get('test')
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@ApiResponse({ 
 		status: HttpStatus.OK, 

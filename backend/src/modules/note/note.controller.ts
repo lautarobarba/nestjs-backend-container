@@ -15,7 +15,7 @@ import {
 	HttpStatus,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { AccessTokenGuard } from 'modules/auth/guards/accessToken.guard';
+import { JwtAuthenticationGuard } from 'modules/auth/guards/jwt-authentication.guard';
 import { Response, Request } from 'express';
 import { IJWTPayload } from 'modules/auth/jwt-payload.interface';
 import { User } from 'modules/user/user.entity';
@@ -33,7 +33,7 @@ export class NoteController {
 	) {}
 
 	@Post()
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiResponse({
@@ -61,7 +61,7 @@ export class NoteController {
 	}
 
 	@Get()
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiResponse({
@@ -81,7 +81,7 @@ export class NoteController {
 	}
 
 	@Get(':id')
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiResponse({
@@ -105,7 +105,7 @@ export class NoteController {
 	}
 
 	@Patch()
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiResponse({
@@ -133,7 +133,7 @@ export class NoteController {
 	}
 
 	@Delete(':id')
-	@UseGuards(AccessTokenGuard)
+	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,

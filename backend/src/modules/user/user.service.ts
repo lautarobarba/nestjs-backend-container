@@ -5,7 +5,7 @@ import { CreateUserDto, UpdateUserDto } from './user.dto';
 import { Status, User } from './user.entity';
 import * as moment from 'moment';
 import { validate } from 'class-validator';
-import { Role } from 'modules/role/Role.enum';
+import { Role } from 'modules/role/role.enum';
 
 @Injectable()
 export class UserService {
