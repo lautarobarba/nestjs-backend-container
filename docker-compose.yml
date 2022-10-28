@@ -17,6 +17,8 @@ services:
       - ${BACK_PORT}:3000
     volumes:
       - ./backend:/app
+    depends_on:
+      - "redis"
     links:
       - "redis"
     extra_hosts:
@@ -38,6 +40,8 @@ services:
       - ${BACK_PORT}:3000
     volumes:
       - ./backend:/app
+    depends_on:
+      - "redis"
     links:
       - "redis"
     extra_hosts:
