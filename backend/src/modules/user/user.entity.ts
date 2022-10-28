@@ -9,17 +9,21 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Note } from '../note/note.entity';
+import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '../role/Role.enum';
 
-export enum EStatus {
+export enum Status {
 	ACTIVE = 'ACTIVE',
 	INACTIVE = 'INACTIVE',
 }
 
 @Entity('users')
 export class User extends BaseEntity {
+	@ApiProperty()
 	@PrimaryGeneratedColumn('increment')
 	id: number;
 
+	@ApiProperty()
 	@Column({
 		name: 'email',
 		type: 'varchar',
@@ -29,6 +33,7 @@ export class User extends BaseEntity {
 	})
 	email: string;
 
+	@ApiProperty()
 	@Column({
 		name: 'name',
 		type: 'varchar',
@@ -58,26 +63,39 @@ export class User extends BaseEntity {
 	})
 	refreshToken: string;
 
-	@OneToMany(() => Note, note => note.author)
-	notes: Note[];
-
+	@ApiProperty()
 	@Column({
 		name: 'status',
 		type: 'enum',
-		enum: EStatus,
-		default: EStatus.ACTIVE,
+		enum: Status,
+		default: Status.ACTIVE,
+		nullable: false
 	})
 	status: string;
 
-	@Column({ name: 'is_admin', type: 'boolean', default: false })
-	isAdmin: boolean;
+	@ApiProperty()
+	@Column({
+		name: 'role',
+    type: 'enum',
+    enum: Role,
+    default: Role.USER,
+		nullable: false
+  })
+  role: Role
 
-	@CreateDateColumn()
-	created: Date;
+	@ApiProperty()
+	@CreateDateColumn({ name: 'created_at' })
+	createdAt: Date;
 
-	@UpdateDateColumn()
-	updated: Date;
+	@ApiProperty()
+	@UpdateDateColumn({ name: 'updated_at' })
+	updatedAt: Date;
 
+	@ApiProperty()
 	@Column({ name: 'deleted', type: 'boolean', default: false })
 	deleted: boolean;
+
+	// Relation
+	@OneToMany(() => Note, note => note.user)
+	notes: Note[];
 }

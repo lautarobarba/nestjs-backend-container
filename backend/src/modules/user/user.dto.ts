@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Role } from 'modules/role/Role.enum';
 
 export class CreateUserDto {
 	@ApiProperty()
@@ -12,17 +13,23 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
+	@ApiProperty()
+	id: number;
+
+	@ApiPropertyOptional()
+	email?: string;
+
 	@ApiPropertyOptional()
 	name?: string;
 
 	@ApiPropertyOptional()
-	refreshToken?: string;
+	status?: string;
 
 	@ApiPropertyOptional()
-	status?: string;
+	role?: Role;
 }
 
-export class UserDto {
+export class ChangeUserPasswordDto {
 	@ApiProperty()
 	id: number;
 
@@ -30,23 +37,5 @@ export class UserDto {
 	email: string;
 
 	@ApiProperty()
-	name: string;
-
-	@ApiProperty()
-	refreshToken: string;
-
-	@ApiProperty()
-	status: string;
-
-	@ApiProperty()
-	isAdmin: boolean;
-
-	@ApiProperty()
-	created: Date;
-
-	@ApiProperty()
-	updated: Date;
-
-	@ApiProperty()
-	deleted: boolean;
+	password: string;
 }

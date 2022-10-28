@@ -94,9 +94,7 @@ export class AuthService {
 		// Hash token
 		const salt = await genSalt(10);
 		const hashedRefreshToken: string = await hash(refreshToken, salt);
-		await this._userService.update(id, {
-			refreshToken: hashedRefreshToken,
-		});
+		await this._userService.updateRefreshToken(id, refreshToken);
 	}
 
 	async getTokens(id: number, email: string): Promise<SessionDto> {

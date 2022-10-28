@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserDto } from 'modules/user/user.dto';
 
 export class CreateNoteDto {
 	@ApiProperty()
@@ -9,36 +8,19 @@ export class CreateNoteDto {
 	content: string;
 
 	@ApiProperty()
-	author: number;
+	userId: number;
 }
 
 export class UpdateNoteDto {
+	@ApiProperty()
+	id: number;
+
 	@ApiPropertyOptional()
 	title?: string;
 
 	@ApiPropertyOptional()
 	content?: string;
-}
 
-export class NoteDto {
-	@ApiProperty()
-	id: number;
-
-	@ApiProperty()
-	title: string;
-
-	@ApiProperty()
-	content: string;
-
-	@ApiProperty()
-	author: UserDto;
-
-	@ApiProperty()
-	created: Date;
-
-	@ApiProperty()
-	updated: Date;
-
-	@ApiProperty()
-	deleted: boolean;
+	@ApiPropertyOptional()
+	userId?: number;
 }
