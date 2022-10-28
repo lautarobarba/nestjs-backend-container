@@ -35,6 +35,7 @@ export class Note extends BaseEntity {
 	})
 	content: string;
 
+	// Relation
 	@ApiProperty({
 		type: () => User
 	})
