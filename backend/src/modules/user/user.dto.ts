@@ -6,7 +6,10 @@ export class CreateUserDto {
 	email: string;
 
 	@ApiProperty()
-	name: string;
+	firstname: string;
+
+	@ApiProperty()
+	lastname: string;
 
 	@ApiProperty()
 	password: string;
@@ -20,7 +23,10 @@ export class UpdateUserDto {
 	email?: string;
 
 	@ApiPropertyOptional()
-	name?: string;
+	firstname: string;
+
+	@ApiPropertyOptional()
+	lastname: string;
 
 	@ApiPropertyOptional()
 	status?: string;

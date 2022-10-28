@@ -15,7 +15,7 @@ export class UserService {
 	) {}
 
 	async create(createUserDto: CreateUserDto): Promise<User> {
-		const { email, name, password } = createUserDto;
+		const { email, firstname, lastname, password } = createUserDto;
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
 		// Controlo que el nuevo usuario no exista
@@ -29,7 +29,8 @@ export class UserService {
 
 		// Si existe pero estaba borrado lógico entonces lo recupero
 		if (exists && exists.deleted) {
-			exists.name = name;
+			exists.firstname = firstname;
+			exists.lastname = lastname;
 			exists.password = password;
 			exists.deleted = false;
 			exists.updatedAt = timestamp;
@@ -44,7 +45,8 @@ export class UserService {
 		// Si no existe entonces creo uno nuevo
 		const user: User = await this._userRepository.create();
 		user.email = email;
-		user.name = email;
+		user.firstname = firstname;
+		user.lastname = lastname;
 		user.password = password;
 		user.status = Status.ACTIVE;
 		user.role = Role.USER;
@@ -84,7 +86,7 @@ export class UserService {
 	}
 
 	async update(updateUserDto: UpdateUserDto): Promise<User> {
-		const { id, email, name, status, role } = updateUserDto;
+		const { id, email, firstname, lastname, status, role } = updateUserDto;
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
 		const user: User = await this._userRepository.findOne({
@@ -106,7 +108,8 @@ export class UserService {
 
 		// Si no hay problemas actualizo los atributos
 		if (email) user.email = email;
-		if (name) user.name = name;
+		if (firstname) user.firstname = firstname;
+		if (lastname) user.lastname = lastname;
 		if (status) user.status = status;
 		if (role) user.role = role;
 		user.updatedAt = timestamp;

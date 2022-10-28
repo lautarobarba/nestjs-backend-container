@@ -35,13 +35,23 @@ export class User extends BaseEntity {
 
 	@ApiProperty()
 	@Column({
-		name: 'name',
+		name: 'firstname',
 		type: 'varchar',
 		nullable: false,
 		unique: false,
 		length: 255,
 	})
-	name: string;
+	firstname: string;
+
+	@ApiProperty()
+	@Column({
+		name: 'lastname',
+		type: 'varchar',
+		nullable: false,
+		unique: false,
+		length: 255,
+	})
+	lastname: string;
 
 	@Exclude()
 	@Column({

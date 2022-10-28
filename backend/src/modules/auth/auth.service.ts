@@ -87,7 +87,7 @@ export class AuthService {
 
 	async getPrivate(id: number): Promise<string> {
 		const user: User = await this._userService.findOne(id);
-		return `Este sitio sólo se puede ver si el usuario esta autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nNAME: ${user.name}\nEMAIL: ${user.email}`;
+		return `Este sitio sólo se puede ver si el usuario esta autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
 
 	async updateRefreshToken(id: number, refreshToken: string) {
