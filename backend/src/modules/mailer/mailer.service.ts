@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 import { MailerService as MailerServiceNode } from '@nestjs-modules/mailer';
 import { EmailDto } from './mailer.dto';
 import { UserService } from 'modules/user/user.service';
@@ -7,6 +9,8 @@ import { User } from 'modules/user/user.entity';
 @Injectable()
 export class MailerService {
 	constructor(
+		@InjectQueue('emailSender') 
+		private _emailSenderQueue: Queue,
 		private readonly _mailerServiceNode: MailerServiceNode,
 		private readonly _userService: UserService
 		) {}

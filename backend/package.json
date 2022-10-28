@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^1.8.1",
+    "@nestjs/bull": "^0.6.1",
     "@nestjs/common": "^9.1.2",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^9.1.2",
@@ -33,7 +34,9 @@
     "@nestjs/platform-express": "^9.1.2",
     "@nestjs/swagger": "^6.1.2",
     "@nestjs/typeorm": "^9.0.1",
+    "@types/bull": "^4.10.0",
     "bcryptjs": "^2.4.3",
+    "bull": "^4.10.1",
     "class-transformer": "^0.5.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.2",

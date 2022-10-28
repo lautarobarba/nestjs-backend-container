@@ -17,6 +17,8 @@ services:
       - ${BACK_PORT}:3000
     volumes:
       - ./backend:/app
+    links:
+      - "redis"
     extra_hosts:
       - host.docker.internal:host-gateway
 
@@ -36,5 +38,12 @@ services:
       - ${BACK_PORT}:3000
     volumes:
       - ./backend:/app
+    links:
+      - "redis"
     extra_hosts:
       - host.docker.internal:host-gateway
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
