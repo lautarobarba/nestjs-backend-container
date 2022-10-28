@@ -33,20 +33,31 @@ $ docker compose down
 $ docker container exec -it prod/dev bash
 ```
 
-## Migraciones
+## Recursos NestJS
 
 ```bash
-$ # Para usar las migraciones con TypeORM hay que configurar nuevamente la db en ormconfig.json
-$ cd backend
-$ cp ormconfig.json.example ormconfig.json
-$ nano ormconfig.json
+$ # Para crear un nuevo recurso usamos el generador de NestJs
+$ # RESOURCE_NAME puede ser el nombre de una entidad(tabla) en singular
+$ docker compose exec -it dev bash -c "nest g resource modules/RESOURCE_NAME --no-spec"
+$ # El contenedor va a generar los archivos con el owner ROOT.
+$ # Cambiamos el owner para que nos deje editar
+$ sudo chown -R ${USER}:${USER} api/src/modules
+```
+
+## Migraciones TypeORM
+
+```bash
 $ # Ver migraciones aplicadas:
 $ docker compose exec -it dev bash -c "npm run migration:show"
 $ # Generar migración
-$ docker compose exec -it dev bash -c "npm run migration:generate NOMBRE_MIGRACION"
+$ docker compose exec -it dev bash -c "npm run migration:generate --name=nombreMigracion"
 $ # Aplicar migraciones
 $ docker compose exec -it dev bash -c "npm run migration:run"
 ```
+
+## Test endpoints
+
+Para testear los endpoints se puede usar Postman o dirigirse a la ruta **/api/docs** para testear con _Swagger_.
 
 # Apéndice
 
