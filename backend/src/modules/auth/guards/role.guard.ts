@@ -1,6 +1,6 @@
-import { Role } from './role.enum';
+import { Role } from '../role.enum';
 import { CanActivate, ExecutionContext, Injectable, mixin, Type } from '@nestjs/common';
-import { RequestWithUser } from '../auth/request-with-user.interface';
+import { RequestWithUser } from '../request-with-user.interface';
 import { JwtAuthenticationGuard } from 'modules/auth/guards/jwt-authentication.guard';
 import { User } from 'modules/user/user.entity';
 import { IJWTPayload } from 'modules/auth/jwt-payload.interface';

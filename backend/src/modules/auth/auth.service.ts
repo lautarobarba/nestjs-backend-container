@@ -13,7 +13,7 @@ import { UserService } from 'modules/user/user.service';
 import { User } from '../user/user.entity';
 import { LoginDto, SessionDto } from './auth.dto';
 import { MailerService } from '../mailer/mailer.service';
-import { Role } from 'modules/role/role.enum';
+import { Role } from 'modules/auth/role.enum';
 
 @Injectable()
 export class AuthService {

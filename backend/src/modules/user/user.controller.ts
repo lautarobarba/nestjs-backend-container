@@ -20,8 +20,8 @@ import { IJWTPayload } from '../auth/jwt-payload.interface';
 import { UpdateUserDto } from './user.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-import { RoleGuard } from 'modules/role/role.guard';
-import { Role } from 'modules/role/role.enum';
+import { RoleGuard } from 'modules/auth/guards/role.guard';
+import { Role } from 'modules/auth/role.enum';
 
 @ApiTags('Usuarios')
 @Controller('user')

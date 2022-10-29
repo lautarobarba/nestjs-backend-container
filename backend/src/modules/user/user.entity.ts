@@ -10,7 +10,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { Note } from '../note/note.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '../role/role.enum';
+import { Role } from 'modules/auth/role.enum';
 
 export enum Status {
 	ACTIVE = 'ACTIVE',

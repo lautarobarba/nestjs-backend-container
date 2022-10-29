@@ -22,8 +22,8 @@ import { JwtAuthenticationGuard } from './guards/jwt-authentication.guard';
 import { IJWTPayload } from './jwt-payload.interface';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { IsEmailConfirmedGuard } from './guards/is-email-confirmed.guard';
-import { RoleGuard } from 'modules/role/role.guard';
-import { Role } from 'modules/role/role.enum';
+import { RoleGuard } from 'modules/auth/guards/role.guard';
+import { Role } from 'modules/auth/role.enum';
 
 @ApiTags('Autenticación')
 @Controller('auth')
