@@ -11,7 +11,7 @@ import { MailerModule } from './modules/mailer/mailer.module';
 @Module({
 	imports: [
 		DatabaseModule,
-		// Redis for queues
+		// Redis connection for queues
 		BullModule.forRootAsync({
       useFactory: async () => ({
         redis: {

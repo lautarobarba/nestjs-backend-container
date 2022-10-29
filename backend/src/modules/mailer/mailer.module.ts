@@ -5,6 +5,7 @@ import { MailerModule as MailerModuleNest } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { UserModule } from 'modules/user/user.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
 	imports: [
@@ -28,6 +29,10 @@ import { UserModule } from 'modules/user/user.module';
 					strict: true,
 				},
 			},
+		}),
+		// Redis connection for queues
+		BullModule.registerQueue({
+				name: 'emailSender',
 		}),
 		UserModule
 	],
