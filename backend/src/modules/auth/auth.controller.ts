@@ -21,6 +21,9 @@ import { AuthService } from './auth.service';
 import { JwtAuthenticationGuard } from './guards/jwt-authentication.guard';
 import { IJWTPayload } from './jwt-payload.interface';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { IsEmailConfirmedGuard } from './guards/is-email-confirmed.guard';
+import { RoleGuard } from 'modules/role/role.guard';
+import { Role } from 'modules/role/role.enum';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -200,6 +203,10 @@ export class AuthController {
 	@ApiResponse({ 
 		status: HttpStatus.OK, 
 	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized',
+	})
 	async testPrivateRoute(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
@@ -210,31 +217,52 @@ export class AuthController {
 		return this._authService.testPrivateRoute(user.id);
 	}
 
-	// @Get('test-email-confirmed')
-	// @UseGuards(JwtAuthenticationGuard)
-	// @ApiBearerAuth()
-	// @ApiResponse({ 
-	// 	status: HttpStatus.OK, 
-	// })
-	// async testEmailConfirmed(
-	// 	@Req() request: Request,
-	// 	@Res({ passthrough: true }) response: Response
-	// ): Promise<string> {
-	// 	console.log('TODO: FALTA CONTROLAR POR EMAIL CONFIRMADO USANDO EL DECORADOR')
-	// 	return this._authService.testEmailConfirmed(user.id);
-	// }
+	@Get('test-email-confirmed')
+	@UseGuards(IsEmailConfirmedGuard())
+	@ApiBearerAuth()
+	@ApiResponse({ 
+		status: HttpStatus.OK, 
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Error: Forbidden',
+	})
+	async testEmailConfirmed(
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response
+	): Promise<string> {
+		const session: IJWTPayload = request.user as IJWTPayload;
+		const user: User = await this._userService.findOne(session.sub);
+		response.status(HttpStatus.OK);
+		return this._authService.testEmailConfirmed(user.id);
+	}
 
-	// @Get('test-role-permission')
-	// @UseGuards(JwtAuthenticationGuard)
-	// @ApiBearerAuth()
-	// @ApiResponse({ 
-	// 	status: HttpStatus.OK, 
-	// })
-	// async testRolePermission(
-	// 	@Req() request: Request,
-	// 	@Res({ passthrough: true }) response: Response
-	// ): Promise<string> {
-	// 	console.log('TODO: FALTA CONTROLAR POR ROLE USANDO EL DECORADOR')
-	// 	return this._authService.testRolePermission(user.id);
-	// }
+	@Get('test-role-permission')
+	@UseGuards(RoleGuard([Role.ADMIN]))
+	@UseGuards(IsEmailConfirmedGuard())
+	@ApiBearerAuth()
+	@ApiResponse({ 
+		status: HttpStatus.OK, 
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized',
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Error: Forbidden',
+	})
+	async testRolePermission(
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response
+	): Promise<string> {
+		const session: IJWTPayload = request.user as IJWTPayload;
+		const user: User = await this._userService.findOne(session.sub);
+		response.status(HttpStatus.OK);
+		return this._authService.testRolePermission(user.id);
+	}
 }

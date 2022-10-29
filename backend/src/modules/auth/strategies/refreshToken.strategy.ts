@@ -25,7 +25,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
 		const user: User = await this._userService.findOneByEmail(email);
 
 		if (!user) {
-			throw new UnauthorizedException();
+			throw new UnauthorizedException('Error: Unauthorized');
 		}
 
 		const refreshToken: string = req

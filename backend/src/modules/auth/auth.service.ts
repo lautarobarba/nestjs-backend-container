@@ -13,6 +13,7 @@ import { UserService } from 'modules/user/user.service';
 import { User } from '../user/user.entity';
 import { LoginDto, SessionDto } from './auth.dto';
 import { MailerService } from '../mailer/mailer.service';
+import { Role } from 'modules/role/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -76,7 +77,7 @@ export class AuthService {
 		const passwordMatches = await compare(password, user.password);
 
 		if (!passwordMatches) {
-			throw new UnauthorizedException('Invalid password');
+			throw new UnauthorizedException('Error: Invalid password');
 		}
 
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
@@ -108,18 +109,18 @@ export class AuthService {
 
 	async testPrivateRoute(id: number): Promise<string> {
 		const user: User = await this._userService.findOne(id);
-		return `Este sitio sólo se puede ver si el usuario esta autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
+		return `Este sitio sólo se puede ver si el usuario está autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
 
-	// async testEmailConfirmed(id: number): Promise<string> {
-	// 	const user: User = await this._userService.findOne(id);
-	// 	return `Este sitio sólo se puede ver si el usuario esta autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
-	// }
+	async testEmailConfirmed(id: number): Promise<string> {
+		const user: User = await this._userService.findOne(id);
+		return `Este sitio sólo se puede ver si el usuario está autenticado y tiene el correo electrónico confirmado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
+	}
 
-	// async testRolePermission(id: number): Promise<string> {
-	// 	const user: User = await this._userService.findOne(id);
-	// 	return `Este sitio sólo se puede ver si el usuario esta autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
-	// }
+	async testRolePermission(id: number): Promise<string> {
+		const user: User = await this._userService.findOne(id);
+		return `Este sitio sólo se puede ver si el usuario está autenticado, tiene el correo electrónico confirmado y tiene rol de ${Role.ADMIN}.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
+	}
 
 	async updateRefreshToken(id: number, refreshToken: string) {
 		// Hash token

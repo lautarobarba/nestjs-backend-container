@@ -5,9 +5,9 @@ import { User } from 'modules/user/user.entity';
 import { IJWTPayload } from 'modules/auth/jwt-payload.interface';
 import { UserService } from 'modules/user/user.service';
 
-export const RoleGuard = (): Type<CanActivate> => {
+export const IsEmailConfirmedGuard = (): Type<CanActivate> => {
   @Injectable()
-  class RoleGuardMixin extends JwtAuthenticationGuard {
+  class IsEmailConfirmedGuardMixin extends JwtAuthenticationGuard {
     constructor(
       private readonly _userService: UserService
     ) { super() }
@@ -30,5 +30,5 @@ export const RoleGuard = (): Type<CanActivate> => {
     }
   }
 
-  return mixin(RoleGuardMixin);
+  return mixin(IsEmailConfirmedGuardMixin);
 }
