@@ -55,27 +55,28 @@ export class MailerController {
     );
   }
 
-  // @Post('test-email-confirmation-email')
-  // @UseInterceptors(ClassSerializerInterceptor)
-  // @ApiResponse({ 
-	// 	status: HttpStatus.OK, 
-	//   description: 'Email sent',
-	// })
-  // @ApiResponse({
-	// 	status: HttpStatus.NOT_FOUND,
-	// 	description: 'Error: Not Found',
-	// })
-  // async sendConfirmEmail(
-  //   @Req() request: Request,
-  //   @Body() emailTestDto: EmailTestDto
-  // ) {
-  //   const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
-  //   const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
-  //   return this._mailerService.sendRegisterEmail(
-  //     ulrToImportCssInEmail, 
-  //     ulrToImportImagesInEmail, 
-  //     emailTestDto.userEmail,
-  //     emailTestDto.overwriteEmail
-  //   );
-  // }
+  @Post('test-email-confirmation-email')
+  @UseInterceptors(ClassSerializerInterceptor)
+  @ApiResponse({ 
+		status: HttpStatus.OK, 
+	  description: 'Email sent',
+	})
+  @ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+  async sendEmailConfirmationEmail(
+    @Req() request: Request,
+    @Body() emailTestDto: EmailTestDto
+  ) {
+    const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+    return this._mailerService.sendEmailConfirmationEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+      emailTestDto.userEmail,
+      'Fake-Access-Token',
+      emailTestDto.overwriteEmail
+    );
+  }
 }

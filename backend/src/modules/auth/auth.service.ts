@@ -44,23 +44,23 @@ export class AuthService {
 			password: hashedPassword,
 		});
 
-		// Envío correo a su email
-		await this._mailerService.sendRegisterEmail(
+		// Envío correo de registro a su email
+		await this._mailerService.sendRegistrationEmail(
       ulrToImportCssInEmail, 
       ulrToImportImagesInEmail, 
 			user.email,
     );
 
-		// TODO: FALTA ENVIAR CORREO PARA ACTIVACION DE CUENTA
-		// // Envío correo a su email
-		// await this._mailerService.sendRegisterEmail(
-    //   ulrToImportCssInEmail, 
-    //   ulrToImportImagesInEmail, 
-		// 	user.email,
-    // );
-
 		const tokens: SessionDto = await this.getTokens(user.id, email);
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+		// Envío correo de validación de cuenta a su email
+		await this._mailerService.sendEmailConfirmationEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+			user.email,
+			tokens.accessToken
+    );
 
 		return tokens;
 	}
@@ -106,10 +106,20 @@ export class AuthService {
 		return this._userService.logout(id);
 	}
 
-	async getPrivate(id: number): Promise<string> {
+	async testPrivateRoute(id: number): Promise<string> {
 		const user: User = await this._userService.findOne(id);
 		return `Este sitio sólo se puede ver si el usuario esta autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
+
+	// async testEmailConfirmed(id: number): Promise<string> {
+	// 	const user: User = await this._userService.findOne(id);
+	// 	return `Este sitio sólo se puede ver si el usuario esta autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
+	// }
+
+	// async testRolePermission(id: number): Promise<string> {
+	// 	const user: User = await this._userService.findOne(id);
+	// 	return `Este sitio sólo se puede ver si el usuario esta autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
+	// }
 
 	async updateRefreshToken(id: number, refreshToken: string) {
 		// Hash token
@@ -127,7 +137,7 @@ export class AuthService {
 				},
 				{
 					secret: process.env.JWT_SECRET,
-					expiresIn: '1d',
+					expiresIn: process.env.JWT_EXPIRATION_TIME ?? '1d',
 				}
 			),
 			this._jwtService.signAsync(
@@ -137,7 +147,7 @@ export class AuthService {
 				},
 				{
 					secret: process.env.JWT_SECRET,
-					expiresIn: '7d',
+					expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME ?? '7d',
 				}
 			),
 		]);

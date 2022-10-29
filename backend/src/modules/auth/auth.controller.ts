@@ -121,19 +121,47 @@ export class AuthController {
 		await this._authService.logout(user.id);
 	}
 
-	@Get('test')
+	@Get('test-auth')
 	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
 	@ApiResponse({ 
 		status: HttpStatus.OK, 
 	})
-	async getPrivate(
+	async testPrivateRoute(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
 	): Promise<string> {
 		const session: IJWTPayload = request.user as IJWTPayload;
 		const user: User = await this._userService.findOne(session.sub);
 		response.status(HttpStatus.OK);
-		return this._authService.getPrivate(user.id);
+		return this._authService.testPrivateRoute(user.id);
 	}
+
+	// @Get('test-email-confirmed')
+	// @UseGuards(JwtAuthenticationGuard)
+	// @ApiBearerAuth()
+	// @ApiResponse({ 
+	// 	status: HttpStatus.OK, 
+	// })
+	// async testEmailConfirmed(
+	// 	@Req() request: Request,
+	// 	@Res({ passthrough: true }) response: Response
+	// ): Promise<string> {
+	// 	console.log('TODO: FALTA CONTROLAR POR EMAIL CONFIRMADO USANDO EL DECORADOR')
+	// 	return this._authService.testEmailConfirmed(user.id);
+	// }
+
+	// @Get('test-role-permission')
+	// @UseGuards(JwtAuthenticationGuard)
+	// @ApiBearerAuth()
+	// @ApiResponse({ 
+	// 	status: HttpStatus.OK, 
+	// })
+	// async testRolePermission(
+	// 	@Req() request: Request,
+	// 	@Res({ passthrough: true }) response: Response
+	// ): Promise<string> {
+	// 	console.log('TODO: FALTA CONTROLAR POR ROLE USANDO EL DECORADOR')
+	// 	return this._authService.testRolePermission(user.id);
+	// }
 }

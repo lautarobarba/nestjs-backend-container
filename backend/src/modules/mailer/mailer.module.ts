@@ -4,7 +4,7 @@ import { MailerController } from './mailer.controller';
 import { MailerModule as MailerModuleNest } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { UserModule } from 'modules/user/user.module';
+import { UserModule } from '../user/user.module';
 import { BullModule } from '@nestjs/bull';
 
 @Module({
@@ -34,7 +34,7 @@ import { BullModule } from '@nestjs/bull';
 		BullModule.registerQueue({
 				name: 'emailSender',
 		}),
-		UserModule
+		UserModule,
 	],
 	controllers: [MailerController],
 	providers: [MailerService],

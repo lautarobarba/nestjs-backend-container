@@ -34,6 +34,14 @@ export class User extends BaseEntity {
 	email: string;
 
 	@ApiProperty()
+	@Column({ 
+		name: 'is_email_confirmed', 
+		type: 'boolean', 
+		default: false 
+	})
+	isEmailConfirmed: boolean;
+
+	@ApiProperty()
 	@Column({
 		name: 'firstname',
 		type: 'varchar',
@@ -102,7 +110,11 @@ export class User extends BaseEntity {
 	updatedAt: Date;
 
 	@ApiProperty()
-	@Column({ name: 'deleted', type: 'boolean', default: false })
+	@Column({ 
+		name: 'deleted', 
+		type: 'boolean', 
+		default: false 
+	})
 	deleted: boolean;
 
 	// Relation
