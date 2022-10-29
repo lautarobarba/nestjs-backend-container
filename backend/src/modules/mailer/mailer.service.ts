@@ -16,7 +16,7 @@ export class MailerService {
 		) {}
 
 	// Envía la tarea 'handleSendTestEmail' a la cola
-	async sendTest(
+	async sendTestEmail(
 		ulrToImportCssInEmail: string, 
 		ulrToImportImagesInEmail: string,
 		userEmail: string,
@@ -60,8 +60,8 @@ export class MailerService {
 		}
 	}
 
-	// Envía la tarea 'handleSendRegisterEmail' a la cola
-	async sendRegisterEmail(
+	// Envía la tarea 'handleSendRegistrationEmail' a la cola
+	async sendRegistrationEmail(
 		ulrToImportCssInEmail: string, 
 		ulrToImportImagesInEmail: string, 
 		userEmail: string, 
@@ -73,7 +73,7 @@ export class MailerService {
 		
 		// console.log(user.email);
 
-		const job: Job = await this._emailSenderQueue.add('handleSendRegisterEmail', {
+		const job: Job = await this._emailSenderQueue.add('handleSendRegistrationEmail', {
 			ulrToImportCssInEmail: ulrToImportCssInEmail,
 			ulrToImportImagesInEmail: ulrToImportImagesInEmail,
 			user: user,
@@ -86,11 +86,11 @@ export class MailerService {
 		};
 	}
 
-	// Ejecula la próxima tarea 'handleSendRegisterEmail' de la cola
-	@Process('handleSendRegisterEmail')
-  async handleSendRegisterEmail(job: Job) {
+	// Ejecula la próxima tarea 'handleSendRegistrationEmail' de la cola
+	@Process('handleSendRegistrationEmail')
+  async handleSendRegistrationEmail(job: Job) {
 		const { ulrToImportCssInEmail,  ulrToImportImagesInEmail, user, mailbox } = job.data;
-		console.log(`handleSendRegisterEmail: BEGIN Enviando correo a- ${mailbox}`);
+		console.log(`handleSendRegistrationEmail: BEGIN Enviando correo a- ${mailbox}`);
 		try {
 			await this._mailerServiceNode.sendMail({
 				to: mailbox,
@@ -103,9 +103,9 @@ export class MailerService {
 					user: user
 				},
 			});
-			console.log(`handleSendRegisterEmail: END Enviando correo a- ${mailbox}`);
+			console.log(`handleSendRegistrationEmail: END Enviando correo a- ${mailbox}`);
 		} catch (error){
-			console.log(`handleSendRegisterEmail: ERROR Enviando correo a- ${mailbox}`);
+			console.log(`handleSendRegistrationEmail: ERROR Enviando correo a- ${mailbox}`);
 			console.log(error);
 		}
   }

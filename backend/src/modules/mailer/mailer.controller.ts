@@ -15,7 +15,7 @@ export class MailerController {
 		status: HttpStatus.OK, 
 	  description: 'Email sent',
 	})
-  async create(
+  async sendTestEmail(
     @Req() request: Request,
     @Body() emailTestDto: EmailTestDto
   ) {
@@ -23,7 +23,7 @@ export class MailerController {
     const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
     // console.log(ulrToImportCssInEmail);
     // console.log(ulrToImportImagesInEmail);
-    return this._mailerService.sendTest(
+    return this._mailerService.sendTestEmail(
       ulrToImportCssInEmail, 
       ulrToImportImagesInEmail,
       emailTestDto.userEmail,
@@ -41,17 +41,41 @@ export class MailerController {
 		status: HttpStatus.NOT_FOUND,
 		description: 'Error: Not Found',
 	})
-  async sendRegisterEmail(
+  async sendRegistrationEmail(
     @Req() request: Request,
     @Body() emailTestDto: EmailTestDto
   ) {
     const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
     const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
-    return this._mailerService.sendRegisterEmail(
+    return this._mailerService.sendRegistrationEmail(
       ulrToImportCssInEmail, 
       ulrToImportImagesInEmail, 
       emailTestDto.userEmail,
       emailTestDto.overwriteEmail
     );
   }
+
+  // @Post('test-email-confirmation-email')
+  // @UseInterceptors(ClassSerializerInterceptor)
+  // @ApiResponse({ 
+	// 	status: HttpStatus.OK, 
+	//   description: 'Email sent',
+	// })
+  // @ApiResponse({
+	// 	status: HttpStatus.NOT_FOUND,
+	// 	description: 'Error: Not Found',
+	// })
+  // async sendConfirmEmail(
+  //   @Req() request: Request,
+  //   @Body() emailTestDto: EmailTestDto
+  // ) {
+  //   const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+  //   const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+  //   return this._mailerService.sendRegisterEmail(
+  //     ulrToImportCssInEmail, 
+  //     ulrToImportImagesInEmail, 
+  //     emailTestDto.userEmail,
+  //     emailTestDto.overwriteEmail
+  //   );
+  // }
 }
