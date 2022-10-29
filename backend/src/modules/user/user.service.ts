@@ -48,7 +48,7 @@ export class UserService {
 		user.firstname = firstname;
 		user.lastname = lastname;
 		user.password = password;
-		user.status = Status.ACTIVE;
+		user.status = Status.INACTIVE;
 		user.role = Role.USER;
 		user.updatedAt = timestamp;
 		user.createdAt = timestamp;

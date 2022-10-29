@@ -2,10 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class EmailTestDto {
 	@ApiProperty()
-	emailTo: string;
-}
+	userEmail: string;
 
-export class EmailDto {
-	@ApiProperty()
-	userId: number;
+	@ApiPropertyOptional()
+	overwriteEmail?: string;
 }

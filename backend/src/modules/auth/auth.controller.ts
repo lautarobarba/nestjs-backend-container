@@ -41,11 +41,18 @@ export class AuthController {
 		description: 'Error: Keys already in use',
 	})
 	async register(
+		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response,
 		@Body() createUserDto: CreateUserDto
 	): Promise<SessionDto> {
+		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
 		response.status(HttpStatus.CREATED);
-		return this._authService.register(createUserDto);
+		return this._authService.register(
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
+			createUserDto
+		);
 	}
 
 	@Post('login')

@@ -11,15 +11,21 @@ import { CreateUserDto } from 'modules/user/user.dto';
 import { UserService } from 'modules/user/user.service';
 import { User } from '../user/user.entity';
 import { LoginDto, SessionDto } from './auth.dto';
+import { MailerService } from '../mailer/mailer.service';
 
 @Injectable()
 export class AuthService {
 	constructor(
 		private readonly _userService: UserService,
-		private readonly _jwtService: JwtService
+		private readonly _jwtService: JwtService,
+		private readonly _mailerService: MailerService
 	) {}
 
-	async register(createUserDto: CreateUserDto): Promise<SessionDto> {
+	async register(
+		ulrToImportCssInEmail: string,
+		ulrToImportImagesInEmail: string,
+		createUserDto: CreateUserDto
+		): Promise<SessionDto> {
 		const { email } = createUserDto;
 
 		// Verifico que el nombre de usuario no esté en uso
@@ -37,6 +43,21 @@ export class AuthService {
 			...createUserDto,
 			password: hashedPassword,
 		});
+
+		// Envío correo a su email
+		await this._mailerService.sendRegisterEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+			user.email,
+    );
+
+		// TODO: FALTA ENVIAR CORREO PARA ACTIVACION DE CUENTA
+		// // Envío correo a su email
+		// await this._mailerService.sendRegisterEmail(
+    //   ulrToImportCssInEmail, 
+    //   ulrToImportImagesInEmail, 
+		// 	user.email,
+    // );
 
 		const tokens: SessionDto = await this.getTokens(user.id, email);
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
