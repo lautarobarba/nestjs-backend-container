@@ -9,6 +9,7 @@ import {
 	UseGuards,
 	UseInterceptors,
 	HttpStatus,
+	NotFoundException,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { ApiBearerAuth, ApiTags, ApiResponse } from '@nestjs/swagger';
@@ -120,6 +121,40 @@ export class AuthController {
 		response.status(HttpStatus.OK);
 		await this._authService.logout(user.id);
 	}
+
+	@Post('send-email-confirmation-email')
+	@UseGuards(JwtAuthenticationGuard)
+	@ApiBearerAuth()
+  @UseInterceptors(ClassSerializerInterceptor)
+  @ApiResponse({ 
+		status: HttpStatus.OK, 
+	  description: 'Email sent',
+	})
+  @ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+	@ApiResponse({ 
+		status: HttpStatus.UNAUTHORIZED, 
+		description: 'Error: Unauthorized' 
+	})
+  async sendEmailConfirmationEmail(
+    @Req() request: Request,
+  ) {
+    const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+
+		const session: IJWTPayload = request.user as IJWTPayload;
+		const user: User = await this._userService.findOne(session.sub);
+
+		if(!user) throw new NotFoundException('User does not exists');
+
+    return this._authService.sendEmailConfirmationEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+      user
+    );
+  }
 
 	@Get('test-auth')
 	@UseGuards(JwtAuthenticationGuard)

@@ -55,11 +55,10 @@ export class AuthService {
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
 
 		// Envío correo de validación de cuenta a su email
-		await this._mailerService.sendEmailConfirmationEmail(
+		await this.sendEmailConfirmationEmail(
       ulrToImportCssInEmail, 
       ulrToImportImagesInEmail, 
-			user.email,
-			tokens.accessToken
+			user
     );
 
 		return tokens;
@@ -158,5 +157,20 @@ export class AuthService {
 		};
 
 		return tokens;
+	}
+
+	async sendEmailConfirmationEmail(
+		ulrToImportCssInEmail: string, 
+		ulrToImportImagesInEmail: string, 
+		user: User
+	) {
+		const tokens: SessionDto = await this.getTokens(user.id, user.email);
+		
+		await this._mailerService.sendEmailConfirmationEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+			user.email,
+			tokens.accessToken
+    );
 	}
 }
