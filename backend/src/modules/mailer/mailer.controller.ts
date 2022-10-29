@@ -79,4 +79,28 @@ export class MailerController {
       emailTestDto.overwriteEmail
     );
   }
+
+  @Post('test-email-confirmed-email')
+  @UseInterceptors(ClassSerializerInterceptor)
+  @ApiResponse({ 
+		status: HttpStatus.OK, 
+	  description: 'Email sent',
+	})
+  @ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+  async sendEmailConfirmedEmail(
+    @Req() request: Request,
+    @Body() emailTestDto: EmailTestDto
+  ) {
+    const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+    return this._mailerService.sendEmailConfirmedEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+      emailTestDto.userEmail,
+      emailTestDto.overwriteEmail
+    );
+  }
 }

@@ -168,4 +168,55 @@ export class MailerService {
 			console.log(error);
 		}
 	}
+
+	// Envía la tarea 'handleSendEmailConfirmedEmail' a la cola
+	async sendEmailConfirmedEmail(
+		ulrToImportCssInEmail: string, 
+		ulrToImportImagesInEmail: string, 
+		userEmail: string,
+		overwriteEmail?: string
+		) {
+		const user: User = await this._userService.findOneByEmail(userEmail);
+
+		if(!user) throw new NotFoundException('User does not exists');
+		
+		// console.log(user.email);
+
+		const job: Job = await this._emailSenderQueue.add('handleSendEmailConfirmedEmail', {
+			ulrToImportCssInEmail: ulrToImportCssInEmail,
+			ulrToImportImagesInEmail: ulrToImportImagesInEmail,
+			user: user,
+			mailbox: overwriteEmail ?? userEmail,
+		});
+
+		// console.log(job);
+		return {
+			jobID: job.id
+		};
+	}
+
+	// Ejecula la próxima tarea 'handleSendEmailConfirmedEmail' de la cola
+	@Process('handleSendEmailConfirmedEmail')
+	async handleSendEmailConfirmedEmail(job: Job) {
+		const { ulrToImportCssInEmail,  ulrToImportImagesInEmail, user, accessToken, mailbox } = job.data;
+		console.log(`handleSendEmailConfirmedEmail: BEGIN Enviando correo a- ${mailbox}`);
+
+		try {
+			await this._mailerServiceNode.sendMail({
+				to: mailbox,
+				// from: '"Support Team" <support@example.com>', // override default from
+				subject: 'TITULO: Confirmación de correo electrónico ACCEPTADA',
+				template: './email-confirmed', // `.hbs` extension is appended automatically
+				context: {
+					ulrToImportCssInEmail: ulrToImportCssInEmail,
+					ulrToImportImagesInEmail: ulrToImportImagesInEmail,
+					user: user,
+				},
+			});
+			console.log(`handleSendEmailConfirmedEmail: END Enviando correo a- ${mailbox}`);
+		} catch (error){
+			console.log(`handleSendEmailConfirmedEmail: ERROR Enviando correo a- ${mailbox}`);
+			console.log(error);
+		}
+	}
 }

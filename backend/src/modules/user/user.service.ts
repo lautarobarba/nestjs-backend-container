@@ -45,6 +45,7 @@ export class UserService {
 		// Si no existe entonces creo uno nuevo
 		const user: User = await this._userRepository.create();
 		user.email = email;
+		user.isEmailConfirmed = false;
 		user.firstname = firstname;
 		user.lastname = lastname;
 		user.password = password;
@@ -86,7 +87,7 @@ export class UserService {
 	}
 
 	async update(updateUserDto: UpdateUserDto): Promise<User> {
-		const { id, email, firstname, lastname, status, role } = updateUserDto;
+		const { id, email, isEmailConfirmed, firstname, lastname, status, role } = updateUserDto;
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
 		const user: User = await this._userRepository.findOne({
@@ -108,6 +109,7 @@ export class UserService {
 
 		// Si no hay problemas actualizo los atributos
 		if (email) user.email = email;
+		if (isEmailConfirmed) user.isEmailConfirmed = isEmailConfirmed;
 		if (firstname) user.firstname = firstname;
 		if (lastname) user.lastname = lastname;
 		if (status) user.status = status;

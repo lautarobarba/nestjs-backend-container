@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from 'modules/user/user.dto';
+import { CreateUserDto, UpdateUserDto } from 'modules/user/user.dto';
 import { UserService } from 'modules/user/user.service';
 import { User } from '../user/user.entity';
 import { LoginDto, SessionDto } from './auth.dto';
@@ -165,12 +165,30 @@ export class AuthService {
 		user: User
 	) {
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
-		
+
 		await this._mailerService.sendEmailConfirmationEmail(
       ulrToImportCssInEmail, 
       ulrToImportImagesInEmail, 
 			user.email,
 			tokens.accessToken
+    );
+	}
+
+	async confirmEmail(
+		ulrToImportCssInEmail: string, 
+		ulrToImportImagesInEmail: string, 
+		user: User
+	) {
+		const updateUserDto: UpdateUserDto = new UpdateUserDto();
+		updateUserDto.id = user.id;
+		updateUserDto.isEmailConfirmed = true;
+		
+		await this._userService.update(updateUserDto);
+		
+		await this._mailerService.sendEmailConfirmedEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+			user.email
     );
 	}
 }

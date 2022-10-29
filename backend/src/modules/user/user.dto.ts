@@ -23,6 +23,9 @@ export class UpdateUserDto {
 	email?: string;
 
 	@ApiPropertyOptional()
+	isEmailConfirmed?: boolean;
+
+	@ApiPropertyOptional()
 	firstname: string;
 
 	@ApiPropertyOptional()

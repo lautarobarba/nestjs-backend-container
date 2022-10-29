@@ -122,7 +122,7 @@ export class AuthController {
 		await this._authService.logout(user.id);
 	}
 
-	@Post('send-email-confirmation-email')
+	@Post('email-confirmation/send')
 	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
   @UseInterceptors(ClassSerializerInterceptor)
@@ -150,6 +150,40 @@ export class AuthController {
 		if(!user) throw new NotFoundException('User does not exists');
 
     return this._authService.sendEmailConfirmationEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+      user
+    );
+  }
+
+	@Post('email-confirmation/confirm')
+	@UseGuards(JwtAuthenticationGuard)
+	@ApiBearerAuth()
+  @UseInterceptors(ClassSerializerInterceptor)
+  @ApiResponse({ 
+		status: HttpStatus.OK, 
+	  description: 'Email sent',
+	})
+  @ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+	@ApiResponse({ 
+		status: HttpStatus.UNAUTHORIZED, 
+		description: 'Error: Unauthorized' 
+	})
+  async confirmEmail(
+    @Req() request: Request,
+  ) {
+    const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+
+		const session: IJWTPayload = request.user as IJWTPayload;
+		const user: User = await this._userService.findOne(session.sub);
+
+		if(!user) throw new NotFoundException('User does not exists');
+
+    return this._authService.confirmEmail(
       ulrToImportCssInEmail, 
       ulrToImportImagesInEmail, 
       user
