@@ -172,6 +172,10 @@ export class AuthController {
 		status: HttpStatus.UNAUTHORIZED, 
 		description: 'Error: Unauthorized' 
 	})
+	@ApiResponse({
+		status: HttpStatus.BAD_REQUEST,
+		description: 'Error: Email already confirmed',
+	})
   async confirmEmail(
     @Req() request: Request,
   ) {

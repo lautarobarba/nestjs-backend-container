@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ConflictException,
 	ForbiddenException,
 	Injectable,
@@ -179,6 +180,9 @@ export class AuthService {
 		ulrToImportImagesInEmail: string, 
 		user: User
 	) {
+		// Reviso si el usuario ya tenia el correo confirmado
+		if (user.isEmailConfirmed) throw new BadRequestException('Error: Email already confirmed');
+
 		const updateUserDto: UpdateUserDto = new UpdateUserDto();
 		updateUserDto.id = user.id;
 		updateUserDto.isEmailConfirmed = true;
