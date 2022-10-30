@@ -10,8 +10,8 @@ import {
 	Res,
 	UseGuards,
 	UseInterceptors,
-	UnauthorizedException,
 	HttpStatus,
+	UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthenticationGuard } from '../auth/guards/jwt-authentication.guard';
@@ -22,14 +22,16 @@ import { User } from './user.entity';
 import { UserService } from './user.service';
 import { RoleGuard } from 'modules/auth/guards/role.guard';
 import { Role } from 'modules/auth/role.enum';
+import { IsEmailConfirmedGuard } from 'modules/auth/guards/is-email-confirmed.guard';
 
-@ApiTags('Usuarios')
 @Controller('user')
+@ApiTags('Usuarios')
 export class UserController {
 	constructor(private readonly _userService: UserService) {}
 
 	@Get()
 	@UseGuards(RoleGuard([Role.ADMIN]))
+	@UseGuards(IsEmailConfirmedGuard())
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiBearerAuth()
 	@ApiResponse({
@@ -45,16 +47,14 @@ export class UserController {
 		status: HttpStatus.FORBIDDEN,
 		description: 'Error: Forbidden',
 	})
-	async findAll(
-		// @Res({ passthrough: true }) response: Response
-	): Promise<User[]> {
+	async findAll(): Promise<User[]> {
 		return this._userService.findAll();
 	}
 
 	@Get(':id')
-	@UseGuards(JwtAuthenticationGuard)
-	@ApiBearerAuth()
+	@UseGuards(IsEmailConfirmedGuard())
 	@UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
 	@ApiResponse({
 		status: HttpStatus.OK,
 		type: User,
@@ -68,23 +68,15 @@ export class UserController {
 		description: 'Error: Unauthorized',
 	})
 	async findOne(
-		@Req() request: Request,
-		@Res({ passthrough: true }) response: Response,
 		@Param('id') id: number
 	): Promise<User> {
-		// const session: IJWTPayload = request.user as IJWTPayload;
-		// const user: User = await this._userService.findOne(session.sub);
-		// if (!user.isAdmin && Number(user.id) !== Number(id)) {
-		// 	throw new UnauthorizedException('Not allow');
-		// }
-		// response.status(HttpStatus.OK);
 		return this._userService.findOne(id);
 	}
 
 	@Patch()
-	@UseGuards(JwtAuthenticationGuard)
-	@ApiBearerAuth()
+	@UseGuards(IsEmailConfirmedGuard())
 	@UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
 	@ApiResponse({
 		status: HttpStatus.OK,
 		type: User,
@@ -102,19 +94,22 @@ export class UserController {
 		@Res({ passthrough: true }) response: Response,
 		@Body() updateUserDto: UpdateUserDto
 	): Promise<User> {
-		// const session: IJWTPayload = request.user as IJWTPayload;
-		// const user: User = await this._userService.findOne(session.sub);
-		// if (!user.isAdmin && Number(user.id) !== Number(id)) {
-		// 	throw new UnauthorizedException('Not allow');
-		// }
-		// response.status(HttpStatus.OK);
+		// Sólo administradores y propietarios pueden editar
+		const user: User = await this._userService.getUserFromRequest(request);
+		if ((user.role !== Role.ADMIN) && (user.id !== updateUserDto.id))
+			throw new UnauthorizedException('Not allow');
+		
 		return this._userService.update(updateUserDto);
 	}
 
 	@Delete(':id')
-	@UseGuards(JwtAuthenticationGuard)
-	@ApiBearerAuth()
+	@UseGuards(RoleGuard([Role.ADMIN]))
+	@UseGuards(IsEmailConfirmedGuard())
 	@UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
+	@ApiResponse({
+		status: HttpStatus.OK,
+	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
 		description: 'Error: Not Found',
@@ -128,12 +123,6 @@ export class UserController {
 		@Res({ passthrough: true }) response: Response,
 		@Param('id') id: number
 	): Promise<void> {
-		// const session: IJWTPayload = request.user as IJWTPayload;
-		// const user: User = await this._userService.findOne(session.sub);
-		// if (!user.isAdmin) {
-		// 	throw new UnauthorizedException('Not admin');
-		// }
-		// response.status(HttpStatus.OK);
 		return this._userService.delete(id);
 	}
 }

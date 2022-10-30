@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { Request } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto, UpdateUserDto } from './user.dto';
@@ -6,6 +7,7 @@ import { Status, User } from './user.entity';
 import * as moment from 'moment';
 import { validate } from 'class-validator';
 import { Role } from 'modules/auth/role.enum';
+import { IJWTPayload } from 'modules/auth/jwt-payload.interface';
 
 @Injectable()
 export class UserService {
@@ -143,10 +145,12 @@ export class UserService {
 	}
 
 	async delete(id: number): Promise<void> {
+		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 		const user: User = await this._userRepository.findOne({
 			where: { id },
 		});
 		user.deleted = true;
+		user.updatedAt = timestamp;
 		this._userRepository.save(user);
 	}
 
@@ -156,5 +160,16 @@ export class UserService {
 		});
 		user.refreshToken = null;
 		this._userRepository.save(user);
+	}
+
+	async getUserFromRequest(request: Request): Promise<User>{
+		const session: IJWTPayload = request.user as IJWTPayload;
+		const user: User = await this._userRepository.findOne({
+			where: { id: session.sub },
+		});
+
+		if (!user) throw new NotFoundException('Error: Not Found');
+
+		return user;
 	}
 }
