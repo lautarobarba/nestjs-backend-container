@@ -24,7 +24,7 @@ export const IsEmailConfirmedGuard = (): Type<CanActivate> => {
       // console.log(user);
 			
 			if (user.isEmailConfirmed) console.log(`El usuario ${user.email} tiene el correo electrónico confirmado. PUEDE INGRESAR`);
-			else console.log(`El usuario ${user.email} no confirmo su correo electrónico. NO PUEDE INGRESAR. Role: ${user.role}`);
+			else console.log(`El usuario ${user.email} no confirmó su correo electrónico. NO PUEDE INGRESAR. Role: ${user.role}`);
 
       return user.isEmailConfirmed;
     }

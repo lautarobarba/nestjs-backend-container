@@ -24,8 +24,8 @@ export const RoleGuard = (roles: Role[]): Type<CanActivate> => {
       const user: User = await this._userService.findOne(payload.sub);
       // console.log(user);
 			
-			if (roles.includes(user.role)) console.log(`El usuario tiene permisos para ingresar como: ${user.role}`);
-			else console.log(`El usuario NO PUEDE INGRESAR. Role: ${user.role}`);
+			if (roles.includes(user.role)) console.log(`El usuario ${user.email} tiene permisos para ingresar como: ${user.role}`);
+			else console.log(`El usuario ${user.email} NO PUEDE INGRESAR. Role: ${user.role}`);
 
       return roles.includes(user.role);
     }
