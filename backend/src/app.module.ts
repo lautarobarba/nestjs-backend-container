@@ -7,9 +7,12 @@ import { UserModule } from 'modules/user/user.module';
 import { AuthModule } from 'modules/auth/auth.module';
 import { NoteModule } from 'modules/note/note.module';
 import { MailerModule } from './modules/mailer/mailer.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CronModule } from 'modules/cron/cron.module';
 
 @Module({
 	imports: [
+		// PostgreSQL connection
 		DatabaseModule,
 		// Redis connection for queues
 		BullModule.forRootAsync({
@@ -20,10 +23,16 @@ import { MailerModule } from './modules/mailer/mailer.module';
         },
       }),
     }),
+		// Cron Jobs
+		ScheduleModule.forRoot(),
+		// Utils
+		MailerModule,
+		CronModule,
+		// Auth
 		AuthModule,
-		UserModule, 
+		UserModule,
+		// App modules 
 		NoteModule, 
-		MailerModule
 	],
 	controllers: [AppController],
 	providers: [AppService],
