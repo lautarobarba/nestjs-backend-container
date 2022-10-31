@@ -135,15 +135,23 @@ export class UserService {
 	}
 
 	async findOneById(id: number): Promise<User> {
-		return this._userRepository.findOne({
+		const user: User = await this._userRepository.findOne({
 			where: { id },
 		});
+
+		if (!user) throw new NotFoundException('Error: Not Found');
+
+		return user;
 	}
 
 	async findOneByEmail(email: string): Promise<User> {
-		return this._userRepository.findOne({
+		const user: User = await this._userRepository.findOne({
 			where: { email },
 		});
+
+		if (!user) throw new NotFoundException('Error: Not Found');
+
+		return user;
 	}
 
 	async update(updateUserDto: UpdateUserDto): Promise<User> {
@@ -262,5 +270,15 @@ export class UserService {
 		if (!user) throw new NotFoundException('Error: Not Found');
 
 		return user;
+	}
+
+	async getProfilePicture(id: number): Promise<ProfilePicture>{
+		const profilePicture: ProfilePicture = await this._profilePictureRepository.findOne({
+			where: { id },
+		});
+
+		if (!profilePicture) throw new NotFoundException('Error: Not Found');
+
+		return profilePicture;
 	}
 }

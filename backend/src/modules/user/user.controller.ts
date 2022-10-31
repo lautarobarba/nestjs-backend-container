@@ -12,22 +12,21 @@ import {
 	UseInterceptors,
 	HttpStatus,
 	UnauthorizedException,
-	BadRequestException,
 	UploadedFile,
+	StreamableFile,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthenticationGuard } from '../auth/guards/jwt-authentication.guard';
 import { Response, Request, Express } from 'express';
-import { IJWTPayload } from '../auth/jwt-payload.interface';
 import { UpdateUserDto } from './user.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { RoleGuard } from 'modules/auth/guards/role.guard';
 import { Role } from '../auth/role.enum';
 import { IsEmailConfirmedGuard } from 'modules/auth/guards/is-email-confirmed.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { LocalFilesInterceptor } from 'modules/utils/localFiles.interceptor';
+import { ProfilePicture } from './profile-picture.entity';
+import { createReadStream } from 'fs';
+import { join } from 'path';
 
 
 @Controller('user')
@@ -57,31 +56,9 @@ export class UserController {
 		return this._userService.findAll();
 	}
 
-	@Get(':id')
-	// @UseGuards(IsEmailConfirmedGuard())
-	// @UseInterceptors(ClassSerializerInterceptor)
-	@ApiBearerAuth()
-	@ApiResponse({
-		status: HttpStatus.OK,
-		type: User,
-	})
-	@ApiResponse({
-		status: HttpStatus.NOT_FOUND,
-		description: 'Error: Not Found',
-	})
-	@ApiResponse({
-		status: HttpStatus.UNAUTHORIZED,
-		description: 'Error: Unauthorized',
-	})
-	async findOne(
-		@Param('id') id: number
-	): Promise<User> {
-		return this._userService.findOne(id);
-	}
-
 	@Patch()
-	// @UseGuards(IsEmailConfirmedGuard())
-	// @UseInterceptors(ClassSerializerInterceptor)
+	@UseGuards(IsEmailConfirmedGuard())
+	@UseInterceptors(ClassSerializerInterceptor)
 	@UseInterceptors(LocalFilesInterceptor({
 		fieldName: 'profilePicture', 
 		path: '/temp'
@@ -124,15 +101,37 @@ export class UserController {
 		@UploadedFile() profilePicture?: Express.Multer.File,
 	): Promise<User> {
 		// Sólo administradores y propietarios pueden editar
-		// const user: User = await this._userService.getUserFromRequest(request);
+		const user: User = await this._userService.getUserFromRequest(request);
 
-		// if ((user.role !== Role.ADMIN) && (user.id != updateUserDto.id))
-		// 	throw new UnauthorizedException('Not allow');
+		if ((user.role !== Role.ADMIN) && (user.id != updateUserDto.id))
+			throw new UnauthorizedException('Not allow');
 		
 		// Agrego la foto de perfil al DTO para enviarlo al service
 		updateUserDto.profilePicture = profilePicture;
 
 		return this._userService.update(updateUserDto);
+	}
+
+	@Get(':id')
+	@UseGuards(IsEmailConfirmedGuard())
+	@UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
+	@ApiResponse({
+		status: HttpStatus.OK,
+		type: User,
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized',
+	})
+	async findOne(
+		@Param('id') id: number
+	): Promise<User> {
+		return this._userService.findOne(id);
 	}
 
 	@Delete(':id')
@@ -157,5 +156,34 @@ export class UserController {
 		@Param('id') id: number
 	): Promise<void> {
 		return this._userService.delete(id);
+	}
+
+	@Get('profile-picture/:id')
+	@UseGuards(IsEmailConfirmedGuard())
+	@UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
+	@ApiResponse({
+		status: HttpStatus.OK,
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized',
+	})
+	async getProfilePicture(
+		@Res({ passthrough: true }) response: Response,
+		@Param('id') id: number
+	): Promise<StreamableFile> {
+		const profilePicture: ProfilePicture = await this._userService.getProfilePicture(id);
+
+		const stream = createReadStream(join(process.cwd(), profilePicture.path));
+		response.set({
+      'Content-Disposition': `inline; filename="${profilePicture.fileName}"`,
+      'Content-Type': profilePicture.mimetype
+    })
+    return new StreamableFile(stream);
 	}
 }
