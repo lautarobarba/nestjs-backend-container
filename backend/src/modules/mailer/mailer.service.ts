@@ -219,4 +219,61 @@ export class MailerService {
 			console.log(error);
 		}
 	}
+
+	// Envía la tarea 'handleSendRecoverPasswordEmail' a la cola
+	async sendRecoverPasswordEmail(
+		ulrToImportCssInEmail: string, 
+		ulrToImportImagesInEmail: string, 
+		userEmail: string,
+		accessToken: string,
+		overwriteEmail?: string
+		) {
+		const user: User = await this._userService.findOneByEmail(userEmail);
+
+		if(!user) throw new NotFoundException('User does not exists');
+		
+		// console.log(user.email);
+
+		const job: Job = await this._emailSenderQueue.add('handleSendRecoverPasswordEmail', {
+			ulrToImportCssInEmail: ulrToImportCssInEmail,
+			ulrToImportImagesInEmail: ulrToImportImagesInEmail,
+			user: user,
+			accessToken,
+			mailbox: overwriteEmail ?? userEmail,
+		});
+
+		// console.log(job);
+		return {
+			jobID: job.id
+		};
+	}
+
+	// Ejecula la próxima tarea 'handleSendRecoverPasswordEmail' de la cola
+	@Process('handleSendRecoverPasswordEmail')
+	async handleSendRecoverPasswordEmail(job: Job) {
+		const { ulrToImportCssInEmail,  ulrToImportImagesInEmail, user, accessToken, mailbox } = job.data;
+		console.log(`handleSendRecoverPasswordEmail: BEGIN Enviando correo a- ${mailbox}`);
+
+		// Ruta para confirmar el correo electrónico en el frontend
+		const passwordRecoveryUrl: string = `${process.env.EMAIL_RECOVERY_URL}/${accessToken}`;
+
+		try {
+			await this._mailerServiceNode.sendMail({
+				to: mailbox,
+				// from: '"Support Team" <support@example.com>', // override default from
+				subject: 'TITULO: Recuperar contraseña',
+				template: './recover-password', // `.hbs` extension is appended automatically
+				context: {
+					ulrToImportCssInEmail: ulrToImportCssInEmail,
+					ulrToImportImagesInEmail: ulrToImportImagesInEmail,
+					user: user,
+					passwordRecoveryUrl
+				},
+			});
+			console.log(`handleSendRecoverPasswordEmail: END Enviando correo a- ${mailbox}`);
+		} catch (error){
+			console.log(`handleSendRecoverPasswordEmail: ERROR Enviando correo a- ${mailbox}`);
+			console.log(error);
+		}
+	}
 }

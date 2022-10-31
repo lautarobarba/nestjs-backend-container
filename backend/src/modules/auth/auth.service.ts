@@ -11,7 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto, UpdateUserDto } from 'modules/user/user.dto';
 import { UserService } from 'modules/user/user.service';
 import { User } from '../user/user.entity';
-import { ChangePasswordDto, LoginDto, SessionDto } from './auth.dto';
+import { ChangePasswordDto, LoginDto, RecoverPasswordDto, SessionDto } from './auth.dto';
 import { MailerService } from '../mailer/mailer.service';
 import { Role } from '../auth/role.enum';
 
@@ -116,6 +116,26 @@ export class AuthService {
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
 
 		return tokens;
+	}
+
+	async recoverPassword(
+		ulrToImportCssInEmail: string,
+		ulrToImportImagesInEmail: string,
+		recoverPasswordDto: RecoverPasswordDto
+	) {
+		const user = await this._userService.findOneByEmail(recoverPasswordDto.email);
+
+		if (!user) throw new NotFoundException('Account does not exists');
+
+		const tokens: SessionDto = await this.getTokens(user.id, user.email);
+
+		// Envío correo de validación de cuenta a su email
+		await this._mailerService.sendRecoverPasswordEmail(
+      ulrToImportCssInEmail, 
+      ulrToImportImagesInEmail, 
+			user.email,
+			tokens.accessToken
+    );
 	}
 
 	async logout(id: number) {

@@ -26,8 +26,5 @@ export class ChangePasswordDto {
 
 export class RecoverPasswordDto {
 	@ApiProperty()
-	id: number;
-
-	@ApiProperty()
 	email: string;
 }

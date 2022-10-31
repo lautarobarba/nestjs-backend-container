@@ -19,7 +19,7 @@ import { ApiBearerAuth, ApiTags, ApiResponse, ApiConsumes, ApiBody } from '@nest
 import { CreateUserDto } from 'modules/user/user.dto';
 import { User } from 'modules/user/user.entity';
 import { UserService } from 'modules/user/user.service';
-import { ChangePasswordDto, LoginDto, SessionDto } from './auth.dto';
+import { ChangePasswordDto, LoginDto, RecoverPasswordDto, SessionDto } from './auth.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthenticationGuard } from './guards/jwt-authentication.guard';
 import { IJWTPayload } from './jwt-payload.interface';
@@ -167,28 +167,37 @@ export class AuthController {
 		return this._authService.changePassword(changePasswordDto);
 	}
 
-	// @Post('recover-password')
-	// @UseInterceptors(ClassSerializerInterceptor)
-	// @ApiResponse({ 
-	// 	status: HttpStatus.OK, 
-	// 	description: 'Renew changed', 
-	// 	type: SessionDto 
-	// })
-	// @ApiResponse({
-	// 	status: HttpStatus.NOT_FOUND,
-	// 	description: 'Error: Not Found',
-	// })
-	// @ApiResponse({
-	// 	status: HttpStatus.UNAUTHORIZED,
-	// 	description: 'Error: Unauthorized',
-	// })
-	// async recoverPassword(
-	// 	@Res({ passthrough: true }) response: Response,
-	// 	@Body() loginDto: LoginDto
-	// ): Promise<SessionDto> {
-	// 	response.status(HttpStatus.OK);
-	// 	return this._authService.recoverPassword(loginDto);
-	// }
+	@Post('recover-password')
+	@UseInterceptors(ClassSerializerInterceptor)
+	@ApiResponse({ 
+		status: HttpStatus.OK, 
+		description: 'Recover Password Email', 
+		type: SessionDto 
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized',
+	})
+	async recoverPassword(
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response,
+		@Body() recoverPasswordDto: RecoverPasswordDto
+	) {
+		// Urls que necesito para los correos
+		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+
+		response.status(HttpStatus.OK);
+		return this._authService.recoverPassword(
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
+			recoverPasswordDto
+		);
+	}
 
 	@Post('logout')
 	@UseGuards(JwtAuthenticationGuard)
