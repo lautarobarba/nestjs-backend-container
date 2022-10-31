@@ -1,6 +1,6 @@
 import { InjectQueue, Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { Job, Queue } from 'bull';
 import { ProfilePicture } from 'modules/user/profile-picture.entity';
 import { UserService } from 'modules/user/user.service';
@@ -15,14 +15,22 @@ export class CronService {
     ) {}
   private readonly logger = new Logger(CronService.name)
 
-  // @Cron('*/5 * * * * *')
+	// Periodo: cada 5 SEG
+	// Tarea: Imprime en consola un mensaje para Testear
+  // @Cron('*/5 * * * * *', {
+	// 	timeZone: 'America/Argentina/Buenos_Aires',
+	// })
   handleCron() {
     this.logger.debug('Cron');
 		console.log('asdasd');
   }
 
+	// Periodo: cada 5 SEG
+	// Tarea: Imprime en consola un mensaje para Testear
   // Envía la tarea 'handleTestCron' a la cola
-  // @Cron('*/5 * * * * *')
+  // @Cron('*/5 * * * * *', {
+	// 	timeZone: 'America/Argentina/Buenos_Aires',
+	// })
 	async testCron() {
     this.logger.debug('¡Cron está funcionando!');
 
@@ -46,7 +54,9 @@ export class CronService {
 	// Periodo: cada 24HS
 	// Tarea: Eliminar imagenes de perfil de usuarios que no están en uso
   // Envía la tarea 'handleDeleteProfilePictures' a la cola
-  @Cron('0 2 * * *')
+  @Cron(CronExpression.EVERY_DAY_AT_1AM, {
+		timeZone: 'America/Argentina/Buenos_Aires',
+	})
 	async deleteProfilePictures() {
     this.logger.debug('Se eliminarán las imágenes de perfil obsoletas');
 
