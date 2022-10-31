@@ -13,7 +13,7 @@ export class CronService {
 		private readonly _cronQueue: Queue,
 		private readonly _userService: UserService,
     ) {}
-  private readonly logger = new Logger(CronService.name)
+  private readonly _logger = new Logger(CronService.name)
 
 	// Periodo: cada 5 SEG
 	// Tarea: Imprime en consola un mensaje para Testear
@@ -21,7 +21,7 @@ export class CronService {
 	// 	timeZone: 'America/Argentina/Buenos_Aires',
 	// })
   handleCron() {
-    this.logger.debug('Cron');
+    this._logger.debug('Cron');
 		console.log('asdasd');
   }
 
@@ -32,7 +32,7 @@ export class CronService {
 	// 	timeZone: 'America/Argentina/Buenos_Aires',
 	// })
 	async testCron() {
-    this.logger.debug('¡Cron está funcionando!');
+    this._logger.debug('¡Cron está funcionando!');
 
 		const job: Job = await this._cronQueue.add('handleTestCron', {
       // Por si necesito enviar datos
@@ -48,7 +48,7 @@ export class CronService {
 	@Process('handleTestCron')
 	async handleTestCron(job: Job) {
 		const { msg } = job.data;
-    this.logger.debug('Ejecutando tarea enviada a la cola handleTestCron por testCron');
+    this._logger.debug('Ejecutando tarea enviada a la cola handleTestCron por testCron');
 	}
 
 	// Periodo: cada 24HS
@@ -58,7 +58,7 @@ export class CronService {
 		timeZone: 'America/Argentina/Buenos_Aires',
 	})
 	async deleteProfilePictures() {
-    this.logger.debug('Se eliminarán las imágenes de perfil obsoletas');
+    this._logger.debug('Se eliminarán las imágenes de perfil obsoletas');
 
 		const job: Job = await this._cronQueue.add('handleDeleteProfilePictures');
 
@@ -70,8 +70,8 @@ export class CronService {
 	// Ejecula la próxima tarea 'handleDeleteProfilePictures' de la cola
 	@Process('handleDeleteProfilePictures')
 	async handleDeleteProfilePictures(job: Job) {
-    this.logger.debug('Eliminando imagenes de perfil obsoletas...');
+    this._logger.debug('Eliminando imagenes de perfil obsoletas...');
 		await this._userService.deleteUselessProfilePictures();
-		this.logger.debug('Imagenes de perfil obsoletas eliminadas.');
+		this._logger.debug('Imagenes de perfil obsoletas eliminadas.');
 	}
 }

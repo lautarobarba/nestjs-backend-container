@@ -3,6 +3,7 @@ import {
 	ConflictException,
 	ForbiddenException,
 	Injectable,
+	Logger,
 	NotFoundException,
 	UnauthorizedException,
 } from '@nestjs/common';
@@ -22,20 +23,24 @@ export class AuthService {
 		private readonly _jwtService: JwtService,
 		private readonly _mailerService: MailerService
 	) {}
+	private readonly _logger = new Logger(AuthService.name);
 
 	async register(
 		ulrToImportCssInEmail: string,
 		ulrToImportImagesInEmail: string,
 		createUserDto: CreateUserDto
-		): Promise<SessionDto> {
+	): Promise<SessionDto> {
+		this._logger.debug('register()');
+		
 		const { email } = createUserDto;
 
 		// Verifico que el nombre de usuario no esté en uso
 		const userExists = await this._userService.findOneByEmail(email);
 		if (userExists) {
+			this._logger.debug('Email already in use');
 			throw new ConflictException('Email already in use');
 		}
-
+		
 		// Hash password
 		const salt = await genSalt(10);
 		const hashedPassword: string = await hash(createUserDto.password, salt);

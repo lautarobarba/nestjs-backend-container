@@ -13,6 +13,7 @@ import {
 	UploadedFile,
 	BadRequestException,
 	UnauthorizedException,
+	Logger,
 } from '@nestjs/common';
 import { Response, Request, Express } from 'express';
 import { ApiBearerAuth, ApiTags, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -36,6 +37,7 @@ export class AuthController {
 		private readonly _authService: AuthService,
 		private readonly _userService: UserService
 	) {}
+	private readonly _logger = new Logger(AuthController.name);
 
 	@Post('register')
 	@UseInterceptors(ClassSerializerInterceptor)
@@ -76,6 +78,8 @@ export class AuthController {
 		@Body() createUserDto: CreateUserDto,
 		@UploadedFile() profilePicture?: Express.Multer.File,
 	): Promise<SessionDto> {
+		this._logger.debug('/api/auth/register');
+
 		// Urls que necesito para los correos
 		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
     const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;

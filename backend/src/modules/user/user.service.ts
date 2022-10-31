@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { Request } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -20,8 +20,10 @@ export class UserService {
 		@InjectRepository(ProfilePicture)
 		private readonly _profilePictureRepository: Repository<ProfilePicture>
 	) {}
+	private readonly _logger = new Logger(UserService.name);
 
 	async create(createUserDto: CreateUserDto): Promise<User> {
+		this._logger.debug('create()');
 		const { email, firstname, lastname, password } = createUserDto;
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
@@ -31,8 +33,10 @@ export class UserService {
 		});
 
 		// Si existe y no esta borrado lógico entonces hay conflictos
-		if (exists && !exists.deleted)
+		if (exists && !exists.deleted) {
+			this._logger.debug('Error: Keys already in use');
 			throw new ConflictException('Error: Keys already in use');
+		}
 
 		// Si existe pero estaba borrado lógico entonces lo recupero
 		if (exists && exists.deleted) {
@@ -136,23 +140,15 @@ export class UserService {
 	}
 
 	async findOneById(id: number): Promise<User> {
-		const user: User = await this._userRepository.findOne({
+		return this._userRepository.findOne({
 			where: { id },
 		});
-
-		if (!user) throw new NotFoundException('Error: Not Found');
-
-		return user;
 	}
 
 	async findOneByEmail(email: string): Promise<User> {
-		const user: User = await this._userRepository.findOne({
+		return this._userRepository.findOne({
 			where: { email },
 		});
-
-		if (!user) throw new NotFoundException('Error: Not Found');
-
-		return user;
 	}
 
 	async update(updateUserDto: UpdateUserDto): Promise<User> {
