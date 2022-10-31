@@ -78,8 +78,7 @@ export class AuthController {
 		@Body() createUserDto: CreateUserDto,
 		@UploadedFile() profilePicture?: Express.Multer.File,
 	): Promise<SessionDto> {
-		this._logger.debug('/api/auth/register');
-
+		this._logger.debug('POST: /api/auth/register');
 		// Urls que necesito para los correos
 		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
     const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
@@ -114,6 +113,7 @@ export class AuthController {
 		@Res({ passthrough: true }) response: Response,
 		@Body() loginDto: LoginDto
 	): Promise<SessionDto> {
+		this._logger.debug('POST: /api/auth/login');
 		response.status(HttpStatus.OK);
 		return this._authService.login(loginDto);
 	}
@@ -130,6 +130,7 @@ export class AuthController {
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response,
 	): Promise<SessionDto> {
+		this._logger.debug('POST: /api/auth/refresh');
 		const { payload, refreshToken } = request.user as {
 			payload: IJWTPayload;
 			refreshToken: string;
@@ -161,6 +162,7 @@ export class AuthController {
 		@Res({ passthrough: true }) response: Response,
 		@Body() changePasswordDto: ChangePasswordDto
 	): Promise<SessionDto> {
+		this._logger.debug('POST: /api/auth/change-password');
 		// Sólo administradores y propietarios pueden actualizar contraseñas
 		const user: User = await this._userService.getUserFromRequest(request);
 
@@ -191,6 +193,7 @@ export class AuthController {
 		@Res({ passthrough: true }) response: Response,
 		@Body() recoverPasswordDto: RecoverPasswordDto
 	) {
+		this._logger.debug('POST: /api/auth/recover-password');
 		// Urls que necesito para los correos
 		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
     const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
@@ -222,6 +225,7 @@ export class AuthController {
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
 	) {
+		this._logger.debug('POST: /api/auth/logout');
 		const session: IJWTPayload = request.user as IJWTPayload;
 		const user: User = await this._userService.findOne(session.sub);
 		response.status(HttpStatus.OK);
@@ -247,6 +251,7 @@ export class AuthController {
   async sendEmailConfirmationEmail(
     @Req() request: Request,
   ) {
+		this._logger.debug('POST: /api/auth/email-confirmation/send');
     const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
     const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
 
@@ -285,6 +290,7 @@ export class AuthController {
   async confirmEmail(
     @Req() request: Request,
   ) {
+		this._logger.debug('POST: /api/auth/email-confirmation/confirm');
     const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
     const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
 
@@ -314,6 +320,7 @@ export class AuthController {
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
 	): Promise<string> {
+		this._logger.debug('GET: /api/auth/test-auth');
 		const session: IJWTPayload = request.user as IJWTPayload;
 		const user: User = await this._userService.findOne(session.sub);
 		response.status(HttpStatus.OK);
@@ -338,6 +345,7 @@ export class AuthController {
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
 	): Promise<string> {
+		this._logger.debug('GET: /api/auth/test-email-confirmed');
 		const session: IJWTPayload = request.user as IJWTPayload;
 		const user: User = await this._userService.findOne(session.sub);
 		response.status(HttpStatus.OK);
@@ -363,6 +371,7 @@ export class AuthController {
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
 	): Promise<string> {
+		this._logger.debug('GET: /api/auth/test-role-permission');
 		const session: IJWTPayload = request.user as IJWTPayload;
 		const user: User = await this._userService.findOne(session.sub);
 		response.status(HttpStatus.OK);

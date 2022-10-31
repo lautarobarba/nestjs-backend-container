@@ -15,6 +15,7 @@ import {
 	UploadedFile,
 	StreamableFile,
 	BadRequestException,
+	Logger,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response, Request, Express } from 'express';
@@ -34,6 +35,7 @@ import { join } from 'path';
 @ApiTags('Usuarios')
 export class UserController {
 	constructor(private readonly _userService: UserService) {}
+	private readonly _logger = new Logger(UserController.name);
 
 	@Get()
 	@UseGuards(RoleGuard([Role.ADMIN]))
@@ -54,6 +56,7 @@ export class UserController {
 		description: 'Error: Forbidden',
 	})
 	async findAll(): Promise<User[]> {
+		this._logger.debug('GET: /api/user');
 		return this._userService.findAll();
 	}
 
@@ -101,6 +104,7 @@ export class UserController {
 		@Body() updateUserDto: UpdateUserDto,
 		@UploadedFile() profilePicture?: Express.Multer.File,
 	): Promise<User> {
+		this._logger.debug('PATCH: /api/user');
 		// Sólo administradores y propietarios pueden editar
 		const user: User = await this._userService.getUserFromRequest(request);
 
@@ -132,6 +136,7 @@ export class UserController {
 	async findOne(
 		@Param('id') id: number
 	): Promise<User> {
+		this._logger.debug('GET: /api/user/:id');
 		return this._userService.findOne(id);
 	}
 
@@ -156,6 +161,7 @@ export class UserController {
 		@Res({ passthrough: true }) response: Response,
 		@Param('id') id: number
 	): Promise<void> {
+		this._logger.debug('DELETE: /api/user/:id');
 		return this._userService.delete(id);
 	}
 
@@ -178,6 +184,7 @@ export class UserController {
 		@Res({ passthrough: true }) response: Response,
 		@Param('id') id: number
 	): Promise<StreamableFile> {
+		this._logger.debug('GET: /api/user/profile-picture/:id');
 		const profilePicture: ProfilePicture = await this._userService.getProfilePicture(id);
 
 		const stream = createReadStream(join(process.cwd(), profilePicture.path));

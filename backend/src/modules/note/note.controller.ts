@@ -13,6 +13,7 @@ import {
 	UnauthorizedException,
 	UseInterceptors,
 	HttpStatus,
+	Logger,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthenticationGuard } from 'modules/auth/guards/jwt-authentication.guard';
@@ -31,6 +32,7 @@ export class NoteController {
 		private readonly _noteService: NoteService,
 		// private readonly _userService: UserService
 	) {}
+	private readonly _logger = new Logger(NoteController.name);
 
 	@Post()
 	@UseGuards(JwtAuthenticationGuard)
@@ -56,6 +58,7 @@ export class NoteController {
 		@Res({ passthrough: true }) response: Response,
 		@Body() createNoteDto: CreateNoteDto
 	): Promise<Note> {
+		this._logger.debug('POST: /api/note');
 		response.status(HttpStatus.CREATED);
 		return this._noteService.create(createNoteDto);
 	}
@@ -76,6 +79,7 @@ export class NoteController {
 	async findAll(
 		@Res({ passthrough: true }) response: Response
 	): Promise<Note[]> {
+		this._logger.debug('GET: /api/note');
 		response.status(HttpStatus.OK);
 		return this._noteService.findAll();
 	}
@@ -100,6 +104,7 @@ export class NoteController {
 		@Res({ passthrough: true }) response: Response,
 		@Param('id') id: number
 	): Promise<Note> {
+		this._logger.debug('GET: /api/note/:id');
 		response.status(HttpStatus.OK);
 		return this._noteService.findOne(id);
 	}
@@ -128,6 +133,7 @@ export class NoteController {
 		@Res({ passthrough: true }) response: Response,
 		@Body() updateNoteDto: UpdateNoteDto
 	): Promise<Note> {
+		this._logger.debug('PATCH: /api/note');
 		response.status(HttpStatus.OK);
 		return this._noteService.update(updateNoteDto);
 	}
@@ -148,6 +154,7 @@ export class NoteController {
 		@Res({ passthrough: true }) response: Response,
 		@Param('id') id: number
 	) {
+		this._logger.debug('DELETE: /api/note/:id');
 		// const session: IJWTPayload = request.user as IJWTPayload;
 		// const user: User = await this._userService.findOne(session.sub);
 		// if (!user.isAdmin) {
