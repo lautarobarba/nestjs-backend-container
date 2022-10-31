@@ -244,6 +244,21 @@ export class UserService {
 		return this._userRepository.save(user);
 	}
 
+	async updatePassword(id: number, password: string) {
+		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
+
+		const user: User = await this._userRepository.findOne({
+			where: { id },
+		});
+
+		if (!user) throw new NotFoundException();
+
+		user.password = password;
+		user.updatedAt = timestamp;
+
+		return this._userRepository.save(user);
+	}
+
 	async delete(id: number): Promise<void> {
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 		const user: User = await this._userRepository.findOne({

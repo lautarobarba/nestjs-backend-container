@@ -11,7 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto, UpdateUserDto } from 'modules/user/user.dto';
 import { UserService } from 'modules/user/user.service';
 import { User } from '../user/user.entity';
-import { LoginDto, SessionDto } from './auth.dto';
+import { ChangePasswordDto, LoginDto, SessionDto } from './auth.dto';
 import { MailerService } from '../mailer/mailer.service';
 import { Role } from '../auth/role.enum';
 
@@ -96,6 +96,21 @@ export class AuthService {
 		if (!tokenMatches) {
 			throw new ForbiddenException('Access Denied');
 		}
+
+		const tokens: SessionDto = await this.getTokens(user.id, user.email);
+		await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+		return tokens;
+	}
+
+	async changePassword(changePasswordDto: ChangePasswordDto) {
+		const user = await this._userService.findOne(changePasswordDto.id);
+
+		// Hash password
+		const salt = await genSalt(10);
+		const hashedPassword: string = await hash(changePasswordDto.newPassword, salt);
+
+		await this._userService.updatePassword(user.id, hashedPassword);
 
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
 		await this.updateRefreshToken(user.id, tokens.refreshToken);

@@ -12,13 +12,14 @@ import {
 	NotFoundException,
 	UploadedFile,
 	BadRequestException,
+	UnauthorizedException,
 } from '@nestjs/common';
 import { Response, Request, Express } from 'express';
 import { ApiBearerAuth, ApiTags, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { CreateUserDto } from 'modules/user/user.dto';
 import { User } from 'modules/user/user.entity';
 import { UserService } from 'modules/user/user.service';
-import { LoginDto, SessionDto } from './auth.dto';
+import { ChangePasswordDto, LoginDto, SessionDto } from './auth.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthenticationGuard } from './guards/jwt-authentication.guard';
 import { IJWTPayload } from './jwt-payload.interface';
@@ -121,15 +122,73 @@ export class AuthController {
 		description: 'New token generated', 
 		type: SessionDto 
 	})
-	async refreshTokens(@Req() request: Request): Promise<SessionDto> {
+	async refreshTokens(
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response,
+	): Promise<SessionDto> {
 		const { payload, refreshToken } = request.user as {
 			payload: IJWTPayload;
 			refreshToken: string;
 		};
 		const user: User = await this._userService.findOne(payload.sub);
-
+		response.status(HttpStatus.OK);
 		return this._authService.refreshTokens(user.id, refreshToken);
 	}
+
+	@Post('change-password')
+	@UseGuards(JwtAuthenticationGuard)
+	@UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
+	@ApiResponse({ 
+		status: HttpStatus.OK, 
+		description: 'Password changed', 
+		type: SessionDto 
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized',
+	})
+	async changePassword(
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response,
+		@Body() changePasswordDto: ChangePasswordDto
+	): Promise<SessionDto> {
+		// Sólo administradores y propietarios pueden actualizar contraseñas
+		const user: User = await this._userService.getUserFromRequest(request);
+
+		if ((user.role !== Role.ADMIN) && (user.id != changePasswordDto.id))
+			throw new UnauthorizedException('Not allow');
+
+		response.status(HttpStatus.OK);
+		return this._authService.changePassword(changePasswordDto);
+	}
+
+	// @Post('recover-password')
+	// @UseInterceptors(ClassSerializerInterceptor)
+	// @ApiResponse({ 
+	// 	status: HttpStatus.OK, 
+	// 	description: 'Renew changed', 
+	// 	type: SessionDto 
+	// })
+	// @ApiResponse({
+	// 	status: HttpStatus.NOT_FOUND,
+	// 	description: 'Error: Not Found',
+	// })
+	// @ApiResponse({
+	// 	status: HttpStatus.UNAUTHORIZED,
+	// 	description: 'Error: Unauthorized',
+	// })
+	// async recoverPassword(
+	// 	@Res({ passthrough: true }) response: Response,
+	// 	@Body() loginDto: LoginDto
+	// ): Promise<SessionDto> {
+	// 	response.status(HttpStatus.OK);
+	// 	return this._authService.recoverPassword(loginDto);
+	// }
 
 	@Post('logout')
 	@UseGuards(JwtAuthenticationGuard)
@@ -158,8 +217,8 @@ export class AuthController {
 
 	@Post('email-confirmation/send')
 	@UseGuards(JwtAuthenticationGuard)
-	@ApiBearerAuth()
   @UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
   @ApiResponse({ 
 		status: HttpStatus.OK, 
 	  description: 'Email sent',
@@ -192,8 +251,8 @@ export class AuthController {
 
 	@Post('email-confirmation/confirm')
 	@UseGuards(JwtAuthenticationGuard)
-	@ApiBearerAuth()
   @UseInterceptors(ClassSerializerInterceptor)
+	@ApiBearerAuth()
   @ApiResponse({ 
 		status: HttpStatus.OK, 
 	  description: 'Email sent',

@@ -50,14 +50,3 @@ export class UpdateUserDto {
 	@ApiPropertyOptional()
 	role?: Role;
 }
-
-export class ChangeUserPasswordDto {
-	@ApiProperty()
-	id: number;
-
-	@ApiProperty()
-	email: string;
-
-	@ApiProperty()
-	password: string;
-}

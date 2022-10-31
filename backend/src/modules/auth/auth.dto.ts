@@ -15,3 +15,19 @@ export class SessionDto {
 	@ApiProperty()
 	refreshToken: string;
 }
+
+export class ChangePasswordDto {
+	@ApiProperty()
+	id: number;
+
+	@ApiProperty()
+	newPassword: string;
+}
+
+export class RecoverPasswordDto {
+	@ApiProperty()
+	id: number;
+
+	@ApiProperty()
+	email: string;
+}
