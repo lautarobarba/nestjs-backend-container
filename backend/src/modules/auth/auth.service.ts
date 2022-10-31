@@ -31,7 +31,6 @@ export class AuthService {
 		createUserDto: CreateUserDto
 	): Promise<SessionDto> {
 		this._logger.debug('register()');
-		
 		const { email } = createUserDto;
 
 		// Verifico que el nombre de usuario no esté en uso
@@ -72,6 +71,7 @@ export class AuthService {
 	}
 
 	async login(loginDto: LoginDto): Promise<SessionDto> {
+		this._logger.debug('login()');
 		const { email, password } = loginDto;
 		const user: User = await this._userService.findOneByEmail(email);
 
@@ -90,6 +90,7 @@ export class AuthService {
 	}
 
 	async refreshTokens(id: number, refreshToken: string) {
+		this._logger.debug('refreshTokens()');
 		const user = await this._userService.findOne(id);
 
 		if (!user || !user.refreshToken) {
@@ -109,6 +110,7 @@ export class AuthService {
 	}
 
 	async changePassword(changePasswordDto: ChangePasswordDto) {
+		this._logger.debug('changePassword()');
 		const user = await this._userService.findOne(changePasswordDto.id);
 
 		// Hash password
@@ -128,6 +130,7 @@ export class AuthService {
 		ulrToImportImagesInEmail: string,
 		recoverPasswordDto: RecoverPasswordDto
 	) {
+		this._logger.debug('recoverPassword()');
 		const user = await this._userService.findOneByEmail(recoverPasswordDto.email);
 
 		if (!user) throw new NotFoundException('Account does not exists');
@@ -144,25 +147,30 @@ export class AuthService {
 	}
 
 	async logout(id: number) {
+		this._logger.debug('logout()');
 		return this._userService.logout(id);
 	}
 
 	async testPrivateRoute(id: number): Promise<string> {
+		this._logger.debug('testPrivateRoute()');
 		const user: User = await this._userService.findOne(id);
 		return `Este sitio sólo se puede ver si el usuario está autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
 
 	async testEmailConfirmed(id: number): Promise<string> {
+		this._logger.debug('testEmailConfirmed()');
 		const user: User = await this._userService.findOne(id);
 		return `Este sitio sólo se puede ver si el usuario está autenticado y tiene el correo electrónico confirmado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
 
 	async testRolePermission(id: number): Promise<string> {
+		this._logger.debug('testRolePermission()');
 		const user: User = await this._userService.findOne(id);
 		return `Este sitio sólo se puede ver si el usuario está autenticado, tiene el correo electrónico confirmado y tiene rol de ${Role.ADMIN}.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
 
 	async updateRefreshToken(id: number, refreshToken: string) {
+		this._logger.debug('updateRefreshToken()');
 		// Hash token
 		const salt = await genSalt(10);
 		const hashedRefreshToken: string = await hash(refreshToken, salt);
@@ -170,6 +178,7 @@ export class AuthService {
 	}
 
 	async getTokens(id: number, email: string): Promise<SessionDto> {
+		this._logger.debug('getTokens()');
 		const [accessToken, refreshToken] = await Promise.all([
 			this._jwtService.signAsync(
 				{
@@ -206,6 +215,7 @@ export class AuthService {
 		ulrToImportImagesInEmail: string, 
 		user: User
 	) {
+		this._logger.debug('sendEmailConfirmationEmail()');
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
 
 		await this._mailerService.sendEmailConfirmationEmail(
@@ -221,6 +231,7 @@ export class AuthService {
 		ulrToImportImagesInEmail: string, 
 		user: User
 	) {
+		this._logger.debug('confirmEmail()');
 		// Reviso si el usuario ya tenia el correo confirmado
 		if (user.isEmailConfirmed) throw new BadRequestException('Error: Email already confirmed');
 
