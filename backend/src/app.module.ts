@@ -25,12 +25,12 @@ import { CronModule } from 'modules/cron/cron.module';
     }),
 		// Cron Jobs
 		ScheduleModule.forRoot(),
-		// Utils
-		MailerModule,
-		CronModule,
 		// Auth
 		AuthModule,
 		UserModule,
+		// Utils
+		MailerModule,
+		CronModule,
 		// App modules 
 		NoteModule, 
 	],

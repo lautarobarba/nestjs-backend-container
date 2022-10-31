@@ -6,6 +6,7 @@ import { CreateUserDto, UpdateUserDto } from './user.dto';
 import { Status, User } from './user.entity';
 import * as moment from 'moment';
 import * as mv from 'mv';
+import * as fs from 'fs';
 import { validate } from 'class-validator';
 import { Role } from '../auth/role.enum';
 import { IJWTPayload } from 'modules/auth/jwt-payload.interface';
@@ -280,5 +281,22 @@ export class UserService {
 		if (!profilePicture) throw new NotFoundException('Error: Not Found');
 
 		return profilePicture;
+	}
+
+	async deleteUselessProfilePictures() {
+		const profilePictures: ProfilePicture[] = await this._profilePictureRepository.find({
+			where: { deleted: true, fileDeleted: false },
+		}); 
+
+		// console.log(profilePictures);
+		profilePictures.forEach( async (pp) => {
+			const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
+			fs.unlink(pp.path, (err: Error) => {
+				if(err) console.log(err);
+			});
+			pp.fileDeleted = true;
+			pp.updatedAt = timestamp;
+			await this._profilePictureRepository.save(pp);
+		});
 	}
 }
