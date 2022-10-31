@@ -11,6 +11,7 @@ import {
 	HttpStatus,
 	NotFoundException,
 	UploadedFile,
+	BadRequestException,
 } from '@nestjs/common';
 import { Response, Request, Express } from 'express';
 import { ApiBearerAuth, ApiTags, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -39,7 +40,16 @@ export class AuthController {
 	@UseInterceptors(ClassSerializerInterceptor)
 	@UseInterceptors(LocalFilesInterceptor({
 		fieldName: 'profilePicture', 
-		path: '/temp'
+		path: '/temp',
+		fileFilter: (request, file, callback) => {
+      if (!file.mimetype.includes('image')) {
+        return callback(new BadRequestException('Invalid image file'), false);
+      }
+      callback(null, true);
+    },
+		limits: {
+      fileSize: (1024 * 1024 * 10) // 10MB
+    }
 	}))
 	@ApiConsumes('multipart/form-data')
   @ApiBody({

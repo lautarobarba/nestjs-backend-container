@@ -14,6 +14,7 @@ import {
 	UnauthorizedException,
 	UploadedFile,
 	StreamableFile,
+	BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response, Request, Express } from 'express';
@@ -61,21 +62,17 @@ export class UserController {
 	@UseInterceptors(ClassSerializerInterceptor)
 	@UseInterceptors(LocalFilesInterceptor({
 		fieldName: 'profilePicture', 
-		path: '/temp'
+		path: '/temp',
+		fileFilter: (request, file, callback) => {
+      if (!file.mimetype.includes('image')) {
+        return callback(new BadRequestException('Invalid image file'), false);
+      }
+      callback(null, true);
+    },
+		limits: {
+      fileSize: (1024 * 1024 * 10) // 10MB
+    }
 	}))
-	// @UseInterceptors(LocalFilesInterceptor({
-  //   fieldName: 'file',
-  //   path: '/avatars',
-  //   fileFilter: (request, file, callback) => {
-  //     if (!file.mimetype.includes('image')) {
-  //       return callback(new BadRequestException('Provide a valid image'), false);
-  //     }
-  //     callback(null, true);
-  //   },
-  //   limits: {
-  //     fileSize: Math.pow(1024, 2) // 1MB
-  //   }
-  // }))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'User attributes',
