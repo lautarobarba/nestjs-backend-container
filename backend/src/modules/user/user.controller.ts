@@ -91,6 +91,10 @@ export class UserController {
 		status: HttpStatus.UNAUTHORIZED,
 		description: 'Error: Unauthorized',
 	})
+	@ApiResponse({
+		status: HttpStatus.PAYLOAD_TOO_LARGE,
+		description: 'Error: Payload Too Large',
+	})
 	async update(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response,

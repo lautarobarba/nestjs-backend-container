@@ -65,6 +65,10 @@ export class AuthController {
 		status: HttpStatus.CONFLICT,
 		description: 'Error: Keys already in use',
 	})
+	@ApiResponse({
+		status: HttpStatus.PAYLOAD_TOO_LARGE,
+		description: 'Error: Payload Too Large',
+	})
 	async register(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response,
