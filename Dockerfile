@@ -1,7 +1,7 @@
 # Desarrollo
 FROM node:16 AS development
 
-WORKDIR /app
+WORKDIR /backend
 
 RUN apt update -y && apt upgrade -y
 RUN npm i -g @nestjs/cli
