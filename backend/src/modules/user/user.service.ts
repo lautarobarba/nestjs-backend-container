@@ -19,7 +19,7 @@ export class UserService {
 		private readonly _userRepository: Repository<User>,
 		@InjectRepository(ProfilePicture)
 		private readonly _profilePictureRepository: Repository<ProfilePicture>
-	) {}
+	) { }
 	private readonly _logger = new Logger(UserService.name);
 
 	async create(createUserDto: CreateUserDto): Promise<User> {
@@ -48,10 +48,10 @@ export class UserService {
 
 			// Actualizo foto de perfil
 			// Primero reviso si existía una foto de perfil previa y la marco como eliminada.
-			if(createUserDto.profilePicture){
+			if (createUserDto.profilePicture) {
 				// Si recibí una nueva foto de perfil
 				// 1° Elimino la vieja
-				if(exists.profilePicture){
+				if (exists.profilePicture) {
 					const oldProfilePicture = await this._profilePictureRepository.findOne({
 						where: { id: exists.profilePicture.id },
 					});
@@ -59,11 +59,11 @@ export class UserService {
 					oldProfilePicture.updatedAt = timestamp;
 					await this._profilePictureRepository.save(oldProfilePicture);
 				}
-				
+
 				// 2° Voy a mover la imagen desde la carpeta temporal donde la recibí
 				const imgSource = createUserDto.profilePicture.path;
 				const imgDestination = imgSource.replace('temp', 'profile-pictures');
-				mv(imgSource, imgDestination, {mkdirp: true}, (err: Error) => {
+				mv(imgSource, imgDestination, { mkdirp: true }, (err: Error) => {
 					console.log(err);
 				});
 
@@ -73,7 +73,7 @@ export class UserService {
 				newProfilePicture.path = imgDestination;
 				newProfilePicture.mimetype = createUserDto.profilePicture.mimetype;
 				newProfilePicture.originalName = createUserDto.profilePicture.originalname;
-				
+
 				// 4° Asigno la nueva al usuario
 				exists.profilePicture = await this._profilePictureRepository.save(newProfilePicture);
 			}
@@ -98,12 +98,12 @@ export class UserService {
 		user.createdAt = timestamp;
 
 		// Guardo la foto de perfil
-		if(createUserDto.profilePicture){
+		if (createUserDto.profilePicture) {
 
 			// 1° Voy a mover la imagen desde la carpeta temporal donde la recibí
 			const imgSource = createUserDto.profilePicture.path;
 			const imgDestination = imgSource.replace('temp', 'profile-pictures');
-			mv(imgSource, imgDestination, {mkdirp: true}, (err: Error) => {
+			mv(imgSource, imgDestination, { mkdirp: true }, (err: Error) => {
 				console.log(err);
 			});
 
@@ -113,7 +113,7 @@ export class UserService {
 			newProfilePicture.path = imgDestination;
 			newProfilePicture.mimetype = createUserDto.profilePicture.mimetype;
 			newProfilePicture.originalName = createUserDto.profilePicture.originalname;
-			
+
 			// 3° Asigno la nueva al usuario
 			user.profilePicture = await this._profilePictureRepository.save(newProfilePicture);
 		}
@@ -126,6 +126,7 @@ export class UserService {
 	}
 
 	async findAll(): Promise<User[]> {
+		this._logger.debug('findAll()');
 		return this._userRepository.find({
 			where: { deleted: false },
 			order: { id: 'ASC' },
@@ -133,6 +134,7 @@ export class UserService {
 	}
 
 	async findOne(id: number): Promise<User> {
+		this._logger.debug('findOne()');
 		return this._userRepository.findOne({
 			where: { id },
 			relations: ['profilePicture']
@@ -140,18 +142,21 @@ export class UserService {
 	}
 
 	async findOneById(id: number): Promise<User> {
+		this._logger.debug('findOneById()');
 		return this._userRepository.findOne({
 			where: { id },
 		});
 	}
 
 	async findOneByEmail(email: string): Promise<User> {
+		this._logger.debug('findOneByEmail()');
 		return this._userRepository.findOne({
 			where: { email },
 		});
 	}
 
 	async update(updateUserDto: UpdateUserDto): Promise<User> {
+		this._logger.debug('update()');
 		const { id, email, isEmailConfirmed, firstname, lastname, status, role } = updateUserDto;
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
@@ -184,10 +189,10 @@ export class UserService {
 
 		// Actualizo foto de perfil
 		// Primero reviso si existía una foto de perfil previa y la marco como eliminada.
-		if(updateUserDto.profilePicture){
+		if (updateUserDto.profilePicture) {
 			// Si recibí una nueva foto de perfil
 			// 1° Elimino la vieja
-			if(user.profilePicture){
+			if (user.profilePicture) {
 				const oldProfilePicture = await this._profilePictureRepository.findOne({
 					where: { id: user.profilePicture.id },
 				});
@@ -195,11 +200,11 @@ export class UserService {
 				oldProfilePicture.updatedAt = timestamp;
 				await this._profilePictureRepository.save(oldProfilePicture);
 			}
-			
+
 			// 2° Voy a mover la imagen desde la carpeta temporal donde la recibí
 			const imgSource = updateUserDto.profilePicture.path;
 			const imgDestination = imgSource.replace('temp', 'profile-pictures');
-			mv(imgSource, imgDestination, {mkdirp: true}, (err: Error) => {
+			mv(imgSource, imgDestination, { mkdirp: true }, (err: Error) => {
 				console.log(err);
 			});
 
@@ -209,11 +214,11 @@ export class UserService {
 			newProfilePicture.path = imgDestination;
 			newProfilePicture.mimetype = updateUserDto.profilePicture.mimetype;
 			newProfilePicture.originalName = updateUserDto.profilePicture.originalname;
-			
+
 			// 4° Asigno la nueva al usuario
 			user.profilePicture = await this._profilePictureRepository.save(newProfilePicture);
 		}
-		
+
 		// Controlo que el modelo no tenga errores antes de guardar
 		const errors = await validate(user);
 		if (errors && errors.length > 0) throw new NotAcceptableException();
@@ -222,6 +227,7 @@ export class UserService {
 	}
 
 	async updateRefreshToken(id: number, refreshToken: string): Promise<User> {
+		this._logger.debug('updateRefreshToken()');
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
 		const user: User = await this._userRepository.findOne({
@@ -241,6 +247,7 @@ export class UserService {
 	}
 
 	async updatePassword(id: number, password: string) {
+		this._logger.debug('updatePassword()');
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
 		const user: User = await this._userRepository.findOne({
@@ -256,6 +263,7 @@ export class UserService {
 	}
 
 	async delete(id: number): Promise<void> {
+		this._logger.debug('delete()');
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 		const user: User = await this._userRepository.findOne({
 			where: { id },
@@ -273,7 +281,8 @@ export class UserService {
 		this._userRepository.save(user);
 	}
 
-	async getUserFromRequest(request: Request): Promise<User>{
+	async getUserFromRequest(request: Request): Promise<User> {
+		this._logger.debug('getUserFromRequest()');
 		const session: IJWTPayload = request.user as IJWTPayload;
 		const user: User = await this._userRepository.findOne({
 			where: { id: session.sub },
@@ -284,7 +293,8 @@ export class UserService {
 		return user;
 	}
 
-	async getProfilePicture(id: number): Promise<ProfilePicture>{
+	async getProfilePicture(id: number): Promise<ProfilePicture> {
+		this._logger.debug('getProfilePicture()');
 		const profilePicture: ProfilePicture = await this._profilePictureRepository.findOne({
 			where: { id },
 		});
@@ -295,15 +305,16 @@ export class UserService {
 	}
 
 	async deleteUselessProfilePictures() {
+		this._logger.debug('deleteUselessProfilePictures()');
 		const profilePictures: ProfilePicture[] = await this._profilePictureRepository.find({
 			where: { deleted: true, fileDeleted: false },
-		}); 
+		});
 
 		// console.log(profilePictures);
-		profilePictures.forEach( async (pp) => {
+		profilePictures.forEach(async (pp) => {
 			const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 			fs.unlink(pp.path, (err: Error) => {
-				if(err) console.log(err);
+				if (err) console.log(err);
 			});
 			pp.fileDeleted = true;
 			pp.updatedAt = timestamp;

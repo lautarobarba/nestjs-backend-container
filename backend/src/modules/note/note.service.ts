@@ -1,7 +1,7 @@
-import { ConflictException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from 'modules/user/user.service';
-import {Repository} from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateNoteDto, UpdateNoteDto } from './note.dto';
 import { Note } from './note.entity';
 import * as moment from 'moment';
@@ -13,9 +13,11 @@ export class NoteService {
 		@InjectRepository(Note)
 		private readonly _noteRepository: Repository<Note>,
 		private readonly _userService: UserService
-	) {}
+	) { }
+	private readonly _logger = new Logger(NoteService.name);
 
 	async create(createNoteDto: CreateNoteDto): Promise<Note> {
+		this._logger.debug('create()');
 		const { title, content, userId } = createNoteDto;
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
@@ -58,6 +60,7 @@ export class NoteService {
 	}
 
 	async findAll(): Promise<Note[]> {
+		this._logger.debug('findAll()');
 		return this._noteRepository.find({
 			where: { deleted: false },
 			order: { id: 'ASC' },
@@ -66,16 +69,15 @@ export class NoteService {
 	}
 
 	async findOne(id: number): Promise<Note> {
-		const note: Note = await this._noteRepository.findOne({
+		this._logger.debug('findOne()');
+		return this._noteRepository.findOne({
 			where: { id },
 			relations: ['user'],
 		});
-
-		if (!note) throw new NotFoundException();
-		return note;
 	}
 
 	async update(updateNoteDto: UpdateNoteDto): Promise<Note> {
+		this._logger.debug('update()');
 		const { id, title, content, userId } = updateNoteDto;
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
@@ -110,6 +112,7 @@ export class NoteService {
 	}
 
 	async delete(id: number): Promise<void> {
+		this._logger.debug('delete()');
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
 
 		const note: Note = await this._noteRepository.findOne({
