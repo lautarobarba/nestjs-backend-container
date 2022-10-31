@@ -12,17 +12,23 @@ import {
 	UseInterceptors,
 	HttpStatus,
 	UnauthorizedException,
+	BadRequestException,
+	UploadedFile,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthenticationGuard } from '../auth/guards/jwt-authentication.guard';
-import { Response, Request } from 'express';
+import { Response, Request, Express } from 'express';
 import { IJWTPayload } from '../auth/jwt-payload.interface';
 import { UpdateUserDto } from './user.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { RoleGuard } from 'modules/auth/guards/role.guard';
-import { Role } from 'modules/auth/role.enum';
+import { Role } from '../auth/role.enum';
 import { IsEmailConfirmedGuard } from 'modules/auth/guards/is-email-confirmed.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { LocalFilesInterceptor } from 'modules/utils/localFiles.interceptor';
+
 
 @Controller('user')
 @ApiTags('Usuarios')
@@ -52,8 +58,8 @@ export class UserController {
 	}
 
 	@Get(':id')
-	@UseGuards(IsEmailConfirmedGuard())
-	@UseInterceptors(ClassSerializerInterceptor)
+	// @UseGuards(IsEmailConfirmedGuard())
+	// @UseInterceptors(ClassSerializerInterceptor)
 	@ApiBearerAuth()
 	@ApiResponse({
 		status: HttpStatus.OK,
@@ -74,8 +80,30 @@ export class UserController {
 	}
 
 	@Patch()
-	@UseGuards(IsEmailConfirmedGuard())
-	@UseInterceptors(ClassSerializerInterceptor)
+	// @UseGuards(IsEmailConfirmedGuard())
+	// @UseInterceptors(ClassSerializerInterceptor)
+	@UseInterceptors(LocalFilesInterceptor({
+		fieldName: 'profilePicture', 
+		path: '/temp'
+	}))
+	// @UseInterceptors(LocalFilesInterceptor({
+  //   fieldName: 'file',
+  //   path: '/avatars',
+  //   fileFilter: (request, file, callback) => {
+  //     if (!file.mimetype.includes('image')) {
+  //       return callback(new BadRequestException('Provide a valid image'), false);
+  //     }
+  //     callback(null, true);
+  //   },
+  //   limits: {
+  //     fileSize: Math.pow(1024, 2) // 1MB
+  //   }
+  // }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'User attributes',
+    type: UpdateUserDto,
+  })
 	@ApiBearerAuth()
 	@ApiResponse({
 		status: HttpStatus.OK,
@@ -92,13 +120,18 @@ export class UserController {
 	async update(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response,
-		@Body() updateUserDto: UpdateUserDto
+		@Body() updateUserDto: UpdateUserDto,
+		@UploadedFile() profilePicture?: Express.Multer.File,
 	): Promise<User> {
 		// Sólo administradores y propietarios pueden editar
-		const user: User = await this._userService.getUserFromRequest(request);
-		if ((user.role !== Role.ADMIN) && (user.id !== updateUserDto.id))
-			throw new UnauthorizedException('Not allow');
+		// const user: User = await this._userService.getUserFromRequest(request);
+
+		// if ((user.role !== Role.ADMIN) && (user.id != updateUserDto.id))
+		// 	throw new UnauthorizedException('Not allow');
 		
+		// Agrego la foto de perfil al DTO para enviarlo al service
+		updateUserDto.profilePicture = profilePicture;
+
 		return this._userService.update(updateUserDto);
 	}
 

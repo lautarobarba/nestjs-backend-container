@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from 'modules/auth/role.enum';
+import { Role } from '../auth/role.enum';
+import { Express } from 'express';
 
 export class CreateUserDto {
 	@ApiProperty()
@@ -10,6 +11,12 @@ export class CreateUserDto {
 
 	@ApiProperty()
 	lastname: string;
+
+	@ApiPropertyOptional({ 
+		type: 'string', 
+		format: 'binary' 
+	})
+	profilePicture?: Express.Multer.File;
 
 	@ApiProperty()
 	password: string;
@@ -30,6 +37,12 @@ export class UpdateUserDto {
 
 	@ApiPropertyOptional()
 	lastname: string;
+
+	@ApiPropertyOptional({ 
+		type: 'string', 
+		format: 'binary' 
+	})
+	profilePicture?: Express.Multer.File;
 
 	@ApiPropertyOptional()
 	status?: string;

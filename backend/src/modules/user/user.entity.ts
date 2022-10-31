@@ -3,14 +3,17 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
+	JoinColumn,
 	OneToMany,
+	OneToOne,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Note } from '../note/note.entity';
-import { ApiProperty } from '@nestjs/swagger';
-import { Role } from 'modules/auth/role.enum';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Role } from '../auth/role.enum';
+import { ProfilePicture } from './profile-picture.entity';
 
 export enum Status {
 	ACTIVE = 'ACTIVE',
@@ -60,6 +63,16 @@ export class User extends BaseEntity {
 		length: 255,
 	})
 	lastname: string;
+
+	// Relation
+	@ApiProperty({
+		type: () => ProfilePicture,
+	})
+	@OneToOne(() => ProfilePicture, profilePicture => profilePicture.user)
+	@JoinColumn({
+		name: 'profile_picture_id',
+	})
+	profilePicture: ProfilePicture;
 
 	@Exclude()
 	@Column({

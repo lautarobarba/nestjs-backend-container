@@ -5,15 +5,19 @@ import { Repository } from 'typeorm';
 import { CreateUserDto, UpdateUserDto } from './user.dto';
 import { Status, User } from './user.entity';
 import * as moment from 'moment';
+import * as mv from 'mv';
 import { validate } from 'class-validator';
-import { Role } from 'modules/auth/role.enum';
+import { Role } from '../auth/role.enum';
 import { IJWTPayload } from 'modules/auth/jwt-payload.interface';
+import { ProfilePicture } from './profile-picture.entity';
 
 @Injectable()
 export class UserService {
 	constructor(
 		@InjectRepository(User)
-		private readonly _userRepository: Repository<User>
+		private readonly _userRepository: Repository<User>,
+		@InjectRepository(ProfilePicture)
+		private readonly _profilePictureRepository: Repository<ProfilePicture>
 	) {}
 
 	async create(createUserDto: CreateUserDto): Promise<User> {
@@ -37,6 +41,38 @@ export class UserService {
 			exists.deleted = false;
 			exists.updatedAt = timestamp;
 
+			// Actualizo foto de perfil
+			// Primero reviso si existía una foto de perfil previa y la marco como eliminada.
+			if(createUserDto.profilePicture){
+				// Si recibí una nueva foto de perfil
+				// 1° Elimino la vieja
+				if(exists.profilePicture){
+					const oldProfilePicture = await this._profilePictureRepository.findOne({
+						where: { id: exists.profilePicture.id },
+					});
+					oldProfilePicture.deleted = true;
+					oldProfilePicture.updatedAt = timestamp;
+					await this._profilePictureRepository.save(oldProfilePicture);
+				}
+				
+				// 2° Voy a mover la imagen desde la carpeta temporal donde la recibí
+				const imgSource = createUserDto.profilePicture.path;
+				const imgDestination = imgSource.replace('temp', 'profile-pictures');
+				mv(imgSource, imgDestination, {mkdirp: true}, (err: Error) => {
+					console.log(err);
+				});
+
+				// 3° La guardo en la DB
+				const newProfilePicture: ProfilePicture = this._profilePictureRepository.create();
+				newProfilePicture.fileName = createUserDto.profilePicture.filename;
+				newProfilePicture.path = imgDestination;
+				newProfilePicture.mimetype = createUserDto.profilePicture.mimetype;
+				newProfilePicture.originalName = createUserDto.profilePicture.originalname;
+				
+				// 4° Asigno la nueva al usuario
+				exists.profilePicture = await this._profilePictureRepository.save(newProfilePicture);
+			}
+
 			// Controlo que el modelo no tenga errores antes de guardar
 			const errors = await validate(exists);
 			if (errors && errors.length > 0) throw new NotAcceptableException();
@@ -45,16 +81,37 @@ export class UserService {
 		}
 
 		// Si no existe entonces creo uno nuevo
-		const user: User = await this._userRepository.create();
+		const user: User = this._userRepository.create();
 		user.email = email;
 		user.isEmailConfirmed = false;
 		user.firstname = firstname;
 		user.lastname = lastname;
 		user.password = password;
-		user.status = Status.INACTIVE;
+		user.status = Status.ACTIVE;
 		user.role = Role.USER;
 		user.updatedAt = timestamp;
 		user.createdAt = timestamp;
+
+		// Guardo la foto de perfil
+		if(createUserDto.profilePicture){
+
+			// 1° Voy a mover la imagen desde la carpeta temporal donde la recibí
+			const imgSource = createUserDto.profilePicture.path;
+			const imgDestination = imgSource.replace('temp', 'profile-pictures');
+			mv(imgSource, imgDestination, {mkdirp: true}, (err: Error) => {
+				console.log(err);
+			});
+
+			// 2° La guardo en la DB
+			const newProfilePicture: ProfilePicture = this._profilePictureRepository.create();
+			newProfilePicture.fileName = createUserDto.profilePicture.filename;
+			newProfilePicture.path = imgDestination;
+			newProfilePicture.mimetype = createUserDto.profilePicture.mimetype;
+			newProfilePicture.originalName = createUserDto.profilePicture.originalname;
+			
+			// 3° Asigno la nueva al usuario
+			user.profilePicture = await this._profilePictureRepository.save(newProfilePicture);
+		}
 
 		// Controlo que el modelo no tenga errores antes de guardar
 		const errors = await validate(user);
@@ -73,6 +130,7 @@ export class UserService {
 	async findOne(id: number): Promise<User> {
 		return this._userRepository.findOne({
 			where: { id },
+			relations: ['profilePicture']
 		});
 	}
 
@@ -94,6 +152,7 @@ export class UserService {
 
 		const user: User = await this._userRepository.findOne({
 			where: { id },
+			relations: ['profilePicture']
 		});
 
 		if (!user) throw new NotFoundException();
@@ -118,6 +177,38 @@ export class UserService {
 		if (role) user.role = role;
 		user.updatedAt = timestamp;
 
+		// Actualizo foto de perfil
+		// Primero reviso si existía una foto de perfil previa y la marco como eliminada.
+		if(updateUserDto.profilePicture){
+			// Si recibí una nueva foto de perfil
+			// 1° Elimino la vieja
+			if(user.profilePicture){
+				const oldProfilePicture = await this._profilePictureRepository.findOne({
+					where: { id: user.profilePicture.id },
+				});
+				oldProfilePicture.deleted = true;
+				oldProfilePicture.updatedAt = timestamp;
+				await this._profilePictureRepository.save(oldProfilePicture);
+			}
+			
+			// 2° Voy a mover la imagen desde la carpeta temporal donde la recibí
+			const imgSource = updateUserDto.profilePicture.path;
+			const imgDestination = imgSource.replace('temp', 'profile-pictures');
+			mv(imgSource, imgDestination, {mkdirp: true}, (err: Error) => {
+				console.log(err);
+			});
+
+			// 3° La guardo en la DB
+			const newProfilePicture: ProfilePicture = this._profilePictureRepository.create();
+			newProfilePicture.fileName = updateUserDto.profilePicture.filename;
+			newProfilePicture.path = imgDestination;
+			newProfilePicture.mimetype = updateUserDto.profilePicture.mimetype;
+			newProfilePicture.originalName = updateUserDto.profilePicture.originalname;
+			
+			// 4° Asigno la nueva al usuario
+			user.profilePicture = await this._profilePictureRepository.save(newProfilePicture);
+		}
+		
 		// Controlo que el modelo no tenga errores antes de guardar
 		const errors = await validate(user);
 		if (errors && errors.length > 0) throw new NotAcceptableException();

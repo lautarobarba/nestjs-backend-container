@@ -43,7 +43,7 @@ export class NoteService {
 		}
 
 		// Si no existe entonces creo uno nuevo
-		const note: Note = await this._noteRepository.create();
+		const note: Note = this._noteRepository.create();
 		note.title = title;
 		note.content = content;
 		note.user = await this._userService.findOne(userId);

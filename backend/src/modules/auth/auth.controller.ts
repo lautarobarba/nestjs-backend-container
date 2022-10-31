@@ -10,9 +10,10 @@ import {
 	UseInterceptors,
 	HttpStatus,
 	NotFoundException,
+	UploadedFile,
 } from '@nestjs/common';
-import { Response, Request } from 'express';
-import { ApiBearerAuth, ApiTags, ApiResponse } from '@nestjs/swagger';
+import { Response, Request, Express } from 'express';
+import { ApiBearerAuth, ApiTags, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { CreateUserDto } from 'modules/user/user.dto';
 import { User } from 'modules/user/user.entity';
 import { UserService } from 'modules/user/user.service';
@@ -23,7 +24,8 @@ import { IJWTPayload } from './jwt-payload.interface';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { IsEmailConfirmedGuard } from './guards/is-email-confirmed.guard';
 import { RoleGuard } from 'modules/auth/guards/role.guard';
-import { Role } from 'modules/auth/role.enum';
+import { Role } from '../auth/role.enum';
+import { LocalFilesInterceptor } from 'modules/utils/localFiles.interceptor';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -35,6 +37,15 @@ export class AuthController {
 
 	@Post('register')
 	@UseInterceptors(ClassSerializerInterceptor)
+	@UseInterceptors(LocalFilesInterceptor({
+		fieldName: 'profilePicture', 
+		path: '/temp'
+	}))
+	@ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'User attributes',
+    type: CreateUserDto,
+  })
 	@ApiResponse({
 		status: HttpStatus.CREATED,
 		description: 'User created',
@@ -47,10 +58,16 @@ export class AuthController {
 	async register(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response,
-		@Body() createUserDto: CreateUserDto
+		@Body() createUserDto: CreateUserDto,
+		@UploadedFile() profilePicture?: Express.Multer.File,
 	): Promise<SessionDto> {
+		// Urls que necesito para los correos
 		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
     const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+
+		// Agrego la foto de perfil al DTO para enviarlo al service
+		createUserDto.profilePicture = profilePicture;
+
 		response.status(HttpStatus.CREATED);
 		return this._authService.register(
 			ulrToImportCssInEmail,
