@@ -125,7 +125,6 @@ export class AuthController {
 	@ApiBearerAuth()
 	@ApiResponse({
 		status: HttpStatus.OK,
-		description: 'User logged out'
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
@@ -284,7 +283,6 @@ export class AuthController {
 	@ApiBearerAuth()
 	@ApiResponse({
 		status: HttpStatus.OK,
-		description: 'Email sent',
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
