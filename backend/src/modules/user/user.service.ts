@@ -34,8 +34,8 @@ export class UserService {
 
 		// Si existe y no esta borrado lógico entonces hay conflictos
 		if (exists && !exists.deleted) {
-			this._logger.debug('Error: Keys already in use');
-			throw new ConflictException('Error: Keys already in use');
+			this._logger.debug('Error: Email already in use');
+			throw new ConflictException('Error: Email already in use');
 		}
 
 		// Si existe pero estaba borrado lógico entonces lo recupero
@@ -76,11 +76,16 @@ export class UserService {
 
 				// 4° Asigno la nueva al usuario
 				exists.profilePicture = await this._profilePictureRepository.save(newProfilePicture);
+			} else {
+				exists.profilePicture = null;
 			}
 
 			// Controlo que el modelo no tenga errores antes de guardar
 			const errors = await validate(exists);
-			if (errors && errors.length > 0) throw new NotAcceptableException();
+			if (errors && errors.length > 0) {
+				this._logger.debug('Error: Not Acceptable');
+				throw new NotAcceptableException('Error: Not Acceptable');
+			}
 
 			return this._userRepository.save(exists);
 		}
@@ -120,7 +125,10 @@ export class UserService {
 
 		// Controlo que el modelo no tenga errores antes de guardar
 		const errors = await validate(user);
-		if (errors && errors.length > 0) throw new NotAcceptableException();
+		if (errors && errors.length > 0) {
+			this._logger.debug('Error: Not Acceptable');
+			throw new NotAcceptableException('Error: Not Acceptable');
+		}
 
 		return this._userRepository.save(user);
 	}
@@ -234,27 +242,27 @@ export class UserService {
 			where: { id },
 		});
 
-		if (!user) throw new NotFoundException();
+		if (!user) {
+			this._logger.debug('Error: Not Found');
+			throw new NotFoundException('Error: Not Found');
+		}
 
 		user.refreshToken = refreshToken;
 		user.updatedAt = timestamp;
 
 		// Controlo que el modelo no tenga errores antes de guardar
 		const errors = await validate(user);
-		if (errors && errors.length > 0) throw new NotAcceptableException();
+		if (errors && errors.length > 0) {
+			this._logger.debug('Error: Not Acceptable');
+			throw new NotAcceptableException('Error: Not Acceptable');
+		}
 
 		return this._userRepository.save(user);
 	}
 
-	async updatePassword(id: number, password: string) {
+	async updatePassword(user: User, password: string) {
 		this._logger.debug('updatePassword()');
 		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
-
-		const user: User = await this._userRepository.findOne({
-			where: { id },
-		});
-
-		if (!user) throw new NotFoundException();
 
 		user.password = password;
 		user.updatedAt = timestamp;
@@ -288,7 +296,10 @@ export class UserService {
 			where: { id: session.sub },
 		});
 
-		if (!user) throw new NotFoundException('Error: Not Found');
+		if (!user) {
+			this._logger.debug('Error: Not Found');
+			throw new NotFoundException('Error: Not Found');
+		}
 
 		return user;
 	}

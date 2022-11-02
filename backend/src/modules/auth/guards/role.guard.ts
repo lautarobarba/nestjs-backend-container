@@ -1,5 +1,5 @@
 import { Role } from '../role.enum';
-import { CanActivate, ExecutionContext, Injectable, mixin, Type } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger, mixin, Type } from '@nestjs/common';
 import { RequestWithUser } from '../request-with-user.interface';
 import { JwtAuthenticationGuard } from 'modules/auth/guards/jwt-authentication.guard';
 import { User } from 'modules/user/user.entity';
@@ -12,6 +12,7 @@ export const RoleGuard = (roles: Role[]): Type<CanActivate> => {
     constructor(
       private readonly _userService: UserService
     ) { super() }
+    private readonly _logger = new Logger(RoleGuardMixin.name);
 
     async canActivate(context: ExecutionContext) {
 
@@ -23,9 +24,10 @@ export const RoleGuard = (roles: Role[]): Type<CanActivate> => {
       // console.log(payload);
       const user: User = await this._userService.findOne(payload.sub);
       // console.log(user);
-			
-			if (roles.includes(user.role)) console.log(`El usuario ${user.email} tiene permisos para ingresar como: ${user.role}`);
-			else console.log(`El usuario ${user.email} NO PUEDE INGRESAR. Role: ${user.role}`);
+
+      if (!roles.includes(user.role)) {
+        this._logger.debug(`El usuario ${user.email} NO PUEDE INGRESAR. Role: ${user.role}`);
+      }
 
       return roles.includes(user.role);
     }

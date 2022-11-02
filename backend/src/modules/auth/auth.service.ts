@@ -22,7 +22,7 @@ export class AuthService {
 		private readonly _userService: UserService,
 		private readonly _jwtService: JwtService,
 		private readonly _mailerService: MailerService
-	) {}
+	) { }
 	private readonly _logger = new Logger(AuthService.name);
 
 	async register(
@@ -31,15 +31,7 @@ export class AuthService {
 		createUserDto: CreateUserDto
 	): Promise<SessionDto> {
 		this._logger.debug('register()');
-		const { email } = createUserDto;
 
-		// Verifico que el nombre de usuario no esté en uso
-		const userExists = await this._userService.findOneByEmail(email);
-		if (userExists) {
-			this._logger.debug('Email already in use');
-			throw new ConflictException('Email already in use');
-		}
-		
 		// Hash password
 		const salt = await genSalt(10);
 		const hashedPassword: string = await hash(createUserDto.password, salt);
@@ -52,20 +44,20 @@ export class AuthService {
 
 		// Envío correo de registro a su email
 		await this._mailerService.sendRegistrationEmail(
-      ulrToImportCssInEmail, 
-      ulrToImportImagesInEmail, 
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
 			user.email,
-    );
+		);
 
-		const tokens: SessionDto = await this.getTokens(user.id, email);
+		const tokens: SessionDto = await this.getTokens(user.id, user.email);
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
 
 		// Envío correo de validación de cuenta a su email
 		await this.sendEmailConfirmationEmail(
-      ulrToImportCssInEmail, 
-      ulrToImportImagesInEmail, 
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
 			user
-    );
+		);
 
 		return tokens;
 	}
@@ -76,16 +68,20 @@ export class AuthService {
 		const user: User = await this._userService.findOneByEmail(email);
 
 		if (!user) {
-			throw new NotFoundException('User does not exists');
+			this._logger.debug('Error: User does not exists');
+			throw new NotFoundException('Error: User does not exists');
 		}
 
 		const passwordMatches = await compare(password, user.password);
 
 		if (!passwordMatches) {
+			this._logger.debug('Error: Invalid password');
 			throw new UnauthorizedException('Error: Invalid password');
 		}
 
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
+		await this.updateRefreshToken(user.id, tokens.refreshToken);
+
 		return tokens;
 	}
 
@@ -94,13 +90,13 @@ export class AuthService {
 		const user = await this._userService.findOne(id);
 
 		if (!user || !user.refreshToken) {
-			throw new ForbiddenException('Access Denied');
+			this._logger.debug('Error: Access Denied');
+			throw new ForbiddenException('Error: Access Denied');
 		}
 
-		const tokenMatches = await compare(refreshToken, user.refreshToken);
-
-		if (!tokenMatches) {
-			throw new ForbiddenException('Access Denied');
+		if (refreshToken !== user.refreshToken) {
+			this._logger.debug('Error: Wrong token');
+			throw new ForbiddenException('Error: Wrong token');
 		}
 
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
@@ -113,11 +109,16 @@ export class AuthService {
 		this._logger.debug('changePassword()');
 		const user = await this._userService.findOne(changePasswordDto.id);
 
+		if (!user) {
+			this._logger.debug('Error: Not Found');
+			throw new NotFoundException('Error: Not Found');
+		}
+
 		// Hash password
 		const salt = await genSalt(10);
 		const hashedPassword: string = await hash(changePasswordDto.newPassword, salt);
 
-		await this._userService.updatePassword(user.id, hashedPassword);
+		await this._userService.updatePassword(user, hashedPassword);
 
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
@@ -133,17 +134,20 @@ export class AuthService {
 		this._logger.debug('recoverPassword()');
 		const user = await this._userService.findOneByEmail(recoverPasswordDto.email);
 
-		if (!user) throw new NotFoundException('Account does not exists');
+		if (!user) {
+			this._logger.debug('Error: Account does not exists');
+			throw new NotFoundException('Error: Account does not exists');
+		}
 
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
 
 		// Envío correo de validación de cuenta a su email
 		await this._mailerService.sendRecoverPasswordEmail(
-      ulrToImportCssInEmail, 
-      ulrToImportImagesInEmail, 
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
 			user.email,
 			tokens.accessToken
-    );
+		);
 	}
 
 	async logout(id: number) {
@@ -211,40 +215,43 @@ export class AuthService {
 	}
 
 	async sendEmailConfirmationEmail(
-		ulrToImportCssInEmail: string, 
-		ulrToImportImagesInEmail: string, 
+		ulrToImportCssInEmail: string,
+		ulrToImportImagesInEmail: string,
 		user: User
 	) {
 		this._logger.debug('sendEmailConfirmationEmail()');
 		const tokens: SessionDto = await this.getTokens(user.id, user.email);
 
 		await this._mailerService.sendEmailConfirmationEmail(
-      ulrToImportCssInEmail, 
-      ulrToImportImagesInEmail, 
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
 			user.email,
 			tokens.accessToken
-    );
+		);
 	}
 
 	async confirmEmail(
-		ulrToImportCssInEmail: string, 
-		ulrToImportImagesInEmail: string, 
+		ulrToImportCssInEmail: string,
+		ulrToImportImagesInEmail: string,
 		user: User
 	) {
 		this._logger.debug('confirmEmail()');
 		// Reviso si el usuario ya tenia el correo confirmado
-		if (user.isEmailConfirmed) throw new BadRequestException('Error: Email already confirmed');
+		if (user.isEmailConfirmed) {
+			this._logger.debug('Error: Email already confirmed');
+			throw new BadRequestException('Error: Email already confirmed');
+		}
 
 		const updateUserDto: UpdateUserDto = new UpdateUserDto();
 		updateUserDto.id = user.id;
 		updateUserDto.isEmailConfirmed = true;
-		
+
 		await this._userService.update(updateUserDto);
-		
+
 		await this._mailerService.sendEmailConfirmedEmail(
-      ulrToImportCssInEmail, 
-      ulrToImportImagesInEmail, 
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
 			user.email
-    );
+		);
 	}
 }

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, mixin, Type } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger, mixin, Type } from '@nestjs/common';
 import { RequestWithUser } from 'modules/auth/request-with-user.interface';
 import { JwtAuthenticationGuard } from 'modules/auth/guards/jwt-authentication.guard';
 import { User } from 'modules/user/user.entity';
@@ -11,6 +11,7 @@ export const IsEmailConfirmedGuard = (): Type<CanActivate> => {
     constructor(
       private readonly _userService: UserService
     ) { super() }
+    private readonly _logger = new Logger(IsEmailConfirmedGuardMixin.name);
 
     async canActivate(context: ExecutionContext) {
 
@@ -22,9 +23,10 @@ export const IsEmailConfirmedGuard = (): Type<CanActivate> => {
       // console.log(payload);
       const user: User = await this._userService.findOne(payload.sub);
       // console.log(user);
-			
-			if (user.isEmailConfirmed) console.log(`El usuario ${user.email} tiene el correo electrónico confirmado. PUEDE INGRESAR`);
-			else console.log(`El usuario ${user.email} no confirmó su correo electrónico. NO PUEDE INGRESAR. Role: ${user.role}`);
+
+      if (!user.isEmailConfirmed) {
+        this._logger.debug(`El usuario ${user.email} no confirmó su correo electrónico. NO PUEDE INGRESAR. Role: ${user.role}`);
+      }
 
       return user.isEmailConfirmed;
     }

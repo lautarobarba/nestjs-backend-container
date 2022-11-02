@@ -36,37 +36,40 @@ export class AuthController {
 	constructor(
 		private readonly _authService: AuthService,
 		private readonly _userService: UserService
-	) {}
+	) { }
 	private readonly _logger = new Logger(AuthController.name);
 
 	@Post('register')
 	@UseInterceptors(ClassSerializerInterceptor)
 	@UseInterceptors(LocalFilesInterceptor({
-		fieldName: 'profilePicture', 
+		fieldName: 'profilePicture',
 		path: '/temp',
 		fileFilter: (request, file, callback) => {
-      if (!file.mimetype.includes('image')) {
-        return callback(new BadRequestException('Invalid image file'), false);
-      }
-      callback(null, true);
-    },
+			if (!file.mimetype.includes('image')) {
+				return callback(new BadRequestException('Invalid image file'), false);
+			}
+			callback(null, true);
+		},
 		limits: {
-      fileSize: (1024 * 1024 * 10) // 10MB
-    }
+			fileSize: (1024 * 1024 * 10) // 10MB
+		}
 	}))
 	@ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'User attributes',
-    type: CreateUserDto,
-  })
+	@ApiBody({
+		description: 'User attributes',
+		type: CreateUserDto,
+	})
 	@ApiResponse({
 		status: HttpStatus.CREATED,
-		description: 'User created',
 		type: SessionDto,
 	})
 	@ApiResponse({
 		status: HttpStatus.CONFLICT,
-		description: 'Error: Keys already in use',
+		description: 'Error: Email already in use',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_ACCEPTABLE,
+		description: 'Error: Not Acceptable',
 	})
 	@ApiResponse({
 		status: HttpStatus.PAYLOAD_TOO_LARGE,
@@ -81,7 +84,7 @@ export class AuthController {
 		this._logger.debug('POST: /api/auth/register');
 		// Urls que necesito para los correos
 		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
-    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+		const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
 
 		// Agrego la foto de perfil al DTO para enviarlo al service
 		createUserDto.profilePicture = profilePicture;
@@ -96,18 +99,17 @@ export class AuthController {
 
 	@Post('login')
 	@UseInterceptors(ClassSerializerInterceptor)
-	@ApiResponse({ 
-		status: HttpStatus.OK, 
-		description: 'User logged in', 
-		type: SessionDto 
+	@ApiResponse({
+		status: HttpStatus.OK,
+		type: SessionDto
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
-		description: 'Error: Not Found',
+		description: 'Error: User does not exists',
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
-		description: 'Error: Unauthorized',
+		description: 'Error: Invalid password',
 	})
 	async login(
 		@Res({ passthrough: true }) response: Response,
@@ -118,13 +120,50 @@ export class AuthController {
 		return this._authService.login(loginDto);
 	}
 
+	@Post('logout')
+	@UseGuards(JwtAuthenticationGuard)
+	@ApiBearerAuth()
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'User logged out'
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized'
+	})
+	async logout(
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response
+	) {
+		this._logger.debug('POST: /api/auth/logout');
+		const session: IJWTPayload = request.user as IJWTPayload;
+		const user: User = await this._userService.findOne(session.sub);
+		response.status(HttpStatus.OK);
+		await this._authService.logout(user.id);
+	}
+
 	@Post('refresh')
 	@UseGuards(RefreshTokenGuard)
 	@ApiBearerAuth()
-	@ApiResponse({ 
-		status: HttpStatus.OK, 
-		description: 'New token generated', 
-		type: SessionDto 
+	@ApiResponse({
+		status: HttpStatus.OK,
+		type: SessionDto
+	})
+	@ApiResponse({
+		status: HttpStatus.FORBIDDEN,
+		description: 'Error: Access Denied/Error: Wrong token',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_FOUND,
+		description: 'Error: Not Found',
+	})
+	@ApiResponse({
+		status: HttpStatus.NOT_ACCEPTABLE,
+		description: 'Error: Not Acceptable',
 	})
 	async refreshTokens(
 		@Req() request: Request,
@@ -135,19 +174,19 @@ export class AuthController {
 			payload: IJWTPayload;
 			refreshToken: string;
 		};
-		const user: User = await this._userService.findOne(payload.sub);
+		const userId: number = Number(payload.sub);
+
 		response.status(HttpStatus.OK);
-		return this._authService.refreshTokens(user.id, refreshToken);
+		return this._authService.refreshTokens(userId, refreshToken);
 	}
 
 	@Post('change-password')
 	@UseGuards(JwtAuthenticationGuard)
 	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiBearerAuth()
-	@ApiResponse({ 
-		status: HttpStatus.OK, 
-		description: 'Password changed', 
-		type: SessionDto 
+	@ApiResponse({
+		status: HttpStatus.OK,
+		type: SessionDto
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
@@ -155,7 +194,7 @@ export class AuthController {
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
-		description: 'Error: Unauthorized',
+		description: 'Error: Unauthorized/Error: Not allow',
 	})
 	async changePassword(
 		@Req() request: Request,
@@ -166,23 +205,23 @@ export class AuthController {
 		// Sólo administradores y propietarios pueden actualizar contraseñas
 		const user: User = await this._userService.getUserFromRequest(request);
 
-		if ((user.role !== Role.ADMIN) && (user.id != changePasswordDto.id))
-			throw new UnauthorizedException('Not allow');
+		if ((user.role !== Role.ADMIN) && (user.id != changePasswordDto.id)) {
+			this._logger.debug('Error: Not allow');
+			throw new UnauthorizedException('Error: Not allow');
+		}
 
 		response.status(HttpStatus.OK);
 		return this._authService.changePassword(changePasswordDto);
 	}
 
-	@Post('recover-password')
+	@Post('email-recover-password')
 	@UseInterceptors(ClassSerializerInterceptor)
-	@ApiResponse({ 
-		status: HttpStatus.OK, 
-		description: 'Recover Password Email', 
-		type: SessionDto 
+	@ApiResponse({
+		status: HttpStatus.OK,
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
-		description: 'Error: Not Found',
+		description: 'Error: Not Found/Error: Account does not exists',
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
@@ -196,7 +235,7 @@ export class AuthController {
 		this._logger.debug('POST: /api/auth/recover-password');
 		// Urls que necesito para los correos
 		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
-    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+		const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
 
 		response.status(HttpStatus.OK);
 		return this._authService.recoverPassword(
@@ -206,111 +245,82 @@ export class AuthController {
 		);
 	}
 
-	@Post('logout')
+	@Post('email-confirmation/send')
 	@UseGuards(JwtAuthenticationGuard)
+	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiBearerAuth()
-	@ApiResponse({ 
-		status: HttpStatus.OK, 
-		description: 'User logged out' 
+	@ApiResponse({
+		status: HttpStatus.OK,
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
 		description: 'Error: Not Found',
 	})
-	@ApiResponse({ 
-		status: HttpStatus.UNAUTHORIZED, 
-		description: 'Error: Unauthorized' 
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized'
 	})
-	async logout(
+	async sendEmailConfirmationEmail(
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response
 	) {
-		this._logger.debug('POST: /api/auth/logout');
-		const session: IJWTPayload = request.user as IJWTPayload;
-		const user: User = await this._userService.findOne(session.sub);
-		response.status(HttpStatus.OK);
-		await this._authService.logout(user.id);
-	}
-
-	@Post('email-confirmation/send')
-	@UseGuards(JwtAuthenticationGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
-	@ApiBearerAuth()
-  @ApiResponse({ 
-		status: HttpStatus.OK, 
-	  description: 'Email sent',
-	})
-  @ApiResponse({
-		status: HttpStatus.NOT_FOUND,
-		description: 'Error: Not Found',
-	})
-	@ApiResponse({ 
-		status: HttpStatus.UNAUTHORIZED, 
-		description: 'Error: Unauthorized' 
-	})
-  async sendEmailConfirmationEmail(
-    @Req() request: Request,
-  ) {
 		this._logger.debug('POST: /api/auth/email-confirmation/send');
-    const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
-    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+		const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
 
-		const session: IJWTPayload = request.user as IJWTPayload;
-		const user: User = await this._userService.findOne(session.sub);
+		const user: User = await this._userService.getUserFromRequest(request);
 
-		if(!user) throw new NotFoundException('User does not exists');
-
-    return this._authService.sendEmailConfirmationEmail(
-      ulrToImportCssInEmail, 
-      ulrToImportImagesInEmail, 
-      user
-    );
-  }
+		response.status(HttpStatus.OK);
+		return this._authService.sendEmailConfirmationEmail(
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
+			user
+		);
+	}
 
 	@Post('email-confirmation/confirm')
 	@UseGuards(JwtAuthenticationGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
+	@UseInterceptors(ClassSerializerInterceptor)
 	@ApiBearerAuth()
-  @ApiResponse({ 
-		status: HttpStatus.OK, 
-	  description: 'Email sent',
+	@ApiResponse({
+		status: HttpStatus.OK,
+		description: 'Email sent',
 	})
-  @ApiResponse({
+	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
 		description: 'Error: Not Found',
 	})
-	@ApiResponse({ 
-		status: HttpStatus.UNAUTHORIZED, 
-		description: 'Error: Unauthorized' 
+	@ApiResponse({
+		status: HttpStatus.UNAUTHORIZED,
+		description: 'Error: Unauthorized'
 	})
 	@ApiResponse({
 		status: HttpStatus.BAD_REQUEST,
 		description: 'Error: Email already confirmed',
 	})
-  async confirmEmail(
-    @Req() request: Request,
-  ) {
+	async confirmEmail(
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response
+	) {
 		this._logger.debug('POST: /api/auth/email-confirmation/confirm');
-    const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
-    const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
+		const ulrToImportCssInEmail: string = `${request.protocol}://host.docker.internal:${process.env.BACK_PORT}`;
+		const ulrToImportImagesInEmail: string = `${request.protocol}://${request.get('Host')}`;
 
-		const session: IJWTPayload = request.user as IJWTPayload;
-		const user: User = await this._userService.findOne(session.sub);
+		const user: User = await this._userService.getUserFromRequest(request);
 
-		if(!user) throw new NotFoundException('User does not exists');
-
-    return this._authService.confirmEmail(
-      ulrToImportCssInEmail, 
-      ulrToImportImagesInEmail, 
-      user
-    );
-  }
+		response.status(HttpStatus.OK);
+		return this._authService.confirmEmail(
+			ulrToImportCssInEmail,
+			ulrToImportImagesInEmail,
+			user
+		);
+	}
 
 	@Get('test-auth')
 	@UseGuards(JwtAuthenticationGuard)
 	@ApiBearerAuth()
-	@ApiResponse({ 
-		status: HttpStatus.OK, 
+	@ApiResponse({
+		status: HttpStatus.OK,
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
@@ -321,8 +331,7 @@ export class AuthController {
 		@Res({ passthrough: true }) response: Response
 	): Promise<string> {
 		this._logger.debug('GET: /api/auth/test-auth');
-		const session: IJWTPayload = request.user as IJWTPayload;
-		const user: User = await this._userService.findOne(session.sub);
+		const user: User = await this._userService.getUserFromRequest(request);
 		response.status(HttpStatus.OK);
 		return this._authService.testPrivateRoute(user.id);
 	}
@@ -330,8 +339,8 @@ export class AuthController {
 	@Get('test-email-confirmed')
 	@UseGuards(IsEmailConfirmedGuard())
 	@ApiBearerAuth()
-	@ApiResponse({ 
-		status: HttpStatus.OK, 
+	@ApiResponse({
+		status: HttpStatus.OK,
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
@@ -346,8 +355,7 @@ export class AuthController {
 		@Res({ passthrough: true }) response: Response
 	): Promise<string> {
 		this._logger.debug('GET: /api/auth/test-email-confirmed');
-		const session: IJWTPayload = request.user as IJWTPayload;
-		const user: User = await this._userService.findOne(session.sub);
+		const user: User = await this._userService.getUserFromRequest(request);
 		response.status(HttpStatus.OK);
 		return this._authService.testEmailConfirmed(user.id);
 	}
@@ -356,8 +364,8 @@ export class AuthController {
 	@UseGuards(RoleGuard([Role.ADMIN]))
 	@UseGuards(IsEmailConfirmedGuard())
 	@ApiBearerAuth()
-	@ApiResponse({ 
-		status: HttpStatus.OK, 
+	@ApiResponse({
+		status: HttpStatus.OK,
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
@@ -372,8 +380,7 @@ export class AuthController {
 		@Res({ passthrough: true }) response: Response
 	): Promise<string> {
 		this._logger.debug('GET: /api/auth/test-role-permission');
-		const session: IJWTPayload = request.user as IJWTPayload;
-		const user: User = await this._userService.findOne(session.sub);
+		const user: User = await this._userService.getUserFromRequest(request);
 		response.status(HttpStatus.OK);
 		return this._authService.testRolePermission(user.id);
 	}

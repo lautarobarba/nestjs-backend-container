@@ -74,9 +74,10 @@ export class MailerService {
 		this._logger.debug('sendRegistrationEmail()');
 		const user: User = await this._userService.findOneByEmail(userEmail);
 
-		if (!user) throw new NotFoundException('User does not exists');
-
-		// console.log(user.email);
+		if (!user) {
+			this._logger.debug('Error: Not Found');
+			throw new NotFoundException('Error: Not Found');
+		}
 
 		const job: Job = await this._emailSenderQueue.add('handleSendRegistrationEmail', {
 			ulrToImportCssInEmail: ulrToImportCssInEmail,
@@ -128,9 +129,10 @@ export class MailerService {
 		this._logger.debug('sendEmailConfirmationEmail()');
 		const user: User = await this._userService.findOneByEmail(userEmail);
 
-		if (!user) throw new NotFoundException('User does not exists');
-
-		// console.log(user.email);
+		if (!user) {
+			this._logger.debug('Error: Not Found');
+			throw new NotFoundException('Error: Not Found');
+		}
 
 		const job: Job = await this._emailSenderQueue.add('handleSendEmailConfirmationEmail', {
 			ulrToImportCssInEmail: ulrToImportCssInEmail,
@@ -186,9 +188,10 @@ export class MailerService {
 		this._logger.debug('sendEmailConfirmedEmail()');
 		const user: User = await this._userService.findOneByEmail(userEmail);
 
-		if (!user) throw new NotFoundException('User does not exists');
-
-		// console.log(user.email);
+		if (!user) {
+			this._logger.debug('Error: Not Found');
+			throw new NotFoundException('Error: Not Found');
+		}
 
 		const job: Job = await this._emailSenderQueue.add('handleSendEmailConfirmedEmail', {
 			ulrToImportCssInEmail: ulrToImportCssInEmail,
@@ -240,9 +243,10 @@ export class MailerService {
 		this._logger.debug('sendRecoverPasswordEmail()');
 		const user: User = await this._userService.findOneByEmail(userEmail);
 
-		if (!user) throw new NotFoundException('User does not exists');
-
-		// console.log(user.email);
+		if (!user) {
+			this._logger.debug('Error: Not Found');
+			throw new NotFoundException('Error: Not Found');
+		}
 
 		const job: Job = await this._emailSenderQueue.add('handleSendRecoverPasswordEmail', {
 			ulrToImportCssInEmail: ulrToImportCssInEmail,
