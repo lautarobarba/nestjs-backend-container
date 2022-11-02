@@ -1,5 +1,2 @@
 # Variables de entorno
 .env
-
-# Config typeorm para migraciones
-ormconfig.json

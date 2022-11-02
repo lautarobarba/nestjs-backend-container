@@ -10,19 +10,20 @@ import { MailerModule } from './modules/mailer/mailer.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronModule } from 'modules/cron/cron.module';
 
+
 @Module({
 	imports: [
 		// PostgreSQL connection
 		DatabaseModule,
 		// Redis connection for queues
 		BullModule.forRootAsync({
-      useFactory: async () => ({
-        redis: {
-          host: 'redis',
-          port: 6379,
-        },
-      }),
-    }),
+			useFactory: async () => ({
+				redis: {
+					host: 'redis',
+					port: 6379,
+				},
+			}),
+		}),
 		// Cron Jobs
 		ScheduleModule.forRoot(),
 		// Auth
@@ -32,7 +33,7 @@ import { CronModule } from 'modules/cron/cron.module';
 		MailerModule,
 		CronModule,
 		// App modules 
-		NoteModule, 
+		NoteModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

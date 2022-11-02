@@ -38,7 +38,7 @@ $ docker container exec -it prod/dev bash
 ```bash
 $ # Prod
 $ docker compose exec -it dev bash -c "npm install NPM_PACKAGE"
-$ # Or dev
+$ # O Dev
 $ docker compose exec -it dev bash -c "npm install --save-dev NPM_PACKAGE"
 ```
 
