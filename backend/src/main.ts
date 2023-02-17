@@ -3,6 +3,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from 'app.module';
 import * as cookieParser from 'cookie-parser';
+import { HttpExceptionFilter } from 'modules/utils/http-exception.filter';
 import { join } from 'path';
 
 
@@ -24,6 +25,9 @@ async function bootstrap() {
 	});
 	app.setBaseViewsDir(join(__dirname, '..', 'emails/templates'));
 	app.setViewEngine('hbs');
+
+	// Exception filter en todas las rutas
+	app.useGlobalFilters(new HttpExceptionFilter());
 
 	// Configuración para swagger
 	const config = new DocumentBuilder()
