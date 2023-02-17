@@ -64,6 +64,15 @@ $ # Aplicar migraciones
 $ docker compose exec -it dev bash -c "npm run migration:run"
 ```
 
+## Crear administrador
+
+```bash
+$ docker compose exec -it dev bash -c "npm run create-admin"
+$ # Esto creara un nuevo administador con las credenciales
+$ #   email: admin@admin.com
+$ #   contraseña: admin
+```
+
 ## Test endpoints
 
 Para testear los endpoints se puede usar Postman o dirigirse a la ruta **/api/docs** para testear con _Swagger_.
@@ -91,5 +100,4 @@ $  echo \
 
 $ sudo apt-get update
 $ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
 ```

@@ -29,6 +29,7 @@ import { IsEmailConfirmedGuard } from './guards/is-email-confirmed.guard';
 import { RoleGuard } from 'modules/auth/guards/role.guard';
 import { Role } from '../auth/role.enum';
 import { LocalFilesInterceptor } from 'modules/utils/localFiles.interceptor';
+import { MENSAJE_ERROR } from 'modules/utils/error-message';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -56,7 +57,7 @@ export class AuthController {
 	}))
 	@ApiConsumes('multipart/form-data')
 	@ApiBody({
-		description: 'User attributes',
+		description: 'Atributos del usuario',
 		type: CreateUserDto,
 	})
 	@ApiResponse({
@@ -65,15 +66,15 @@ export class AuthController {
 	})
 	@ApiResponse({
 		status: HttpStatus.CONFLICT,
-		description: 'Error: Email already in use',
+		description: MENSAJE_ERROR.CLAVE_PRIMARIA_EN_USO,
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_ACCEPTABLE,
-		description: 'Error: Not Acceptable',
+		description: MENSAJE_ERROR.NO_ACEPTABLE,
 	})
 	@ApiResponse({
 		status: HttpStatus.PAYLOAD_TOO_LARGE,
-		description: 'Error: Payload Too Large',
+		description: MENSAJE_ERROR.ARCHIVO_MUY_PESADO,
 	})
 	async register(
 		@Req() request: Request,
@@ -105,11 +106,11 @@ export class AuthController {
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
-		description: 'Error: User does not exists',
+		description: MENSAJE_ERROR.NO_ENCONTRADO,
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
-		description: 'Error: Invalid password',
+		description: MENSAJE_ERROR.CONTRASENA_INCORRECTA,
 	})
 	async login(
 		@Res({ passthrough: true }) response: Response,
@@ -128,11 +129,11 @@ export class AuthController {
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
-		description: 'Error: Not Found',
+		description: MENSAJE_ERROR.NO_ENCONTRADO,
 	})
 	@ApiResponse({
 		status: HttpStatus.UNAUTHORIZED,
-		description: 'Error: Unauthorized'
+		description: MENSAJE_ERROR.FALTAN_PERMISOS
 	})
 	async logout(
 		@Req() request: Request,
@@ -154,15 +155,15 @@ export class AuthController {
 	})
 	@ApiResponse({
 		status: HttpStatus.FORBIDDEN,
-		description: 'Error: Access Denied/Error: Wrong token',
+		description: MENSAJE_ERROR.TOKEN_INCORRECTO,
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_FOUND,
-		description: 'Error: Not Found',
+		description: MENSAJE_ERROR.NO_ENCONTRADO,
 	})
 	@ApiResponse({
 		status: HttpStatus.NOT_ACCEPTABLE,
-		description: 'Error: Not Acceptable',
+		description: MENSAJE_ERROR.NO_ACEPTABLE,
 	})
 	async refreshTokens(
 		@Req() request: Request,

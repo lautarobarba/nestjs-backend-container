@@ -12,9 +12,9 @@ export class CreateUserDto {
 	@ApiProperty()
 	lastname: string;
 
-	@ApiPropertyOptional({ 
-		type: 'string', 
-		format: 'binary' 
+	@ApiPropertyOptional({
+		type: 'string',
+		format: 'binary'
 	})
 	profilePicture?: Express.Multer.File;
 
@@ -38,9 +38,9 @@ export class UpdateUserDto {
 	@ApiPropertyOptional()
 	lastname: string;
 
-	@ApiPropertyOptional({ 
-		type: 'string', 
-		format: 'binary' 
+	@ApiPropertyOptional({
+		type: 'string',
+		format: 'binary'
 	})
 	profilePicture?: Express.Multer.File;
 

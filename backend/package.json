@@ -21,7 +21,7 @@
 		"migration:show": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts migration:show",
 		"migration:generate": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts migration:generate src/database/migrations/$npm_config_name",
 		"migration:run": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts migration:run",
-		"create-admin": "CLI_PATH=src/console/create-admin.console.ts npx nestjs-command: run src/console/create-admin.console.ts"
+		"create-admin": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts query \"INSERT INTO users(email, firstname, lastname, password, status, role) VALUES('admin@admin.com', 'admin', 'admin', '2a0$PnRAugDwGCo3unlJELH/E.9Tkytn3W90zmdVK1hcZnQ8cFP9xUhNK', 'ACTIVE', 'ADMIN')\""
 	},
 	"dependencies": {
 		"@nestjs-modules/mailer": "^1.8.1",

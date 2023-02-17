@@ -6,6 +6,7 @@ import { DatabaseModule } from 'database/database.module';
 import { UserModule } from 'modules/user/user.module';
 import { AuthModule } from 'modules/auth/auth.module';
 import { NoteModule } from 'modules/note/note.module';
+import { GroupModule } from './modules/group/group.module';
 import { MailerModule } from './modules/mailer/mailer.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronModule } from 'modules/cron/cron.module';
@@ -29,6 +30,7 @@ import { CronModule } from 'modules/cron/cron.module';
 		// Auth
 		AuthModule,
 		UserModule,
+		GroupModule,
 		// Utils
 		MailerModule,
 		CronModule,
