@@ -1,9 +1,13 @@
 {
 	"name": "backend",
 	"version": "0.0.1",
-	"description": "",
-	"author": "",
+	"description": "Backend Template - NestJS",
+	"author": "Lautaro Barba",
 	"private": true,
+	"engines": {
+		"npm": ">=9.0.0",
+		"node": ">=18.0.0"
+	  },
 	"license": "UNLICENSED",
 	"scripts": {
 		"prebuild": "rimraf dist",
