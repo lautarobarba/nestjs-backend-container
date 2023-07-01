@@ -1,36 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { GroupService } from './group.service';
-import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { Controller } from "@nestjs/common";
+import { Crud, CrudController } from "@nestjsx/crud";
+import { Group } from "./group.entity";
+import { GroupService } from "./group.service";
+import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags('Grupos')
-@Controller('group')
-export class GroupController {
-  constructor(private readonly groupService: GroupService) { }
-
-  @Post()
-  create(@Body() createGroupDto: CreateGroupDto) {
-    return this.groupService.create(createGroupDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.groupService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
-    return this.groupService.update(+id, updateGroupDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupService.remove(+id);
-  }
+@Crud({
+  model: {
+    type: Group,
+  },
+})
+@ApiTags("Grupos")
+@Controller("group")
+export class GroupController implements CrudController<Group> {
+  constructor(public service: GroupService) {}
 }

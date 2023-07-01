@@ -7,7 +7,7 @@
 	"engines": {
 		"npm": ">=9.0.0",
 		"node": ">=18.0.0"
-	  },
+	},
 	"license": "UNLICENSED",
 	"scripts": {
 		"prebuild": "rimraf dist",
@@ -39,6 +39,8 @@
 		"@nestjs/schedule": "^2.1.0",
 		"@nestjs/swagger": "^6.1.2",
 		"@nestjs/typeorm": "^9.0.1",
+		"@nestjsx/crud": "^5.0.0-alpha.3",
+		"@nestjsx/crud-typeorm": "^5.0.0-alpha.3",
 		"bcryptjs": "^2.4.3",
 		"bull": "^4.10.1",
 		"class-transformer": "^0.5.1",
@@ -61,7 +63,7 @@
 		"rxjs": "^7.5.7",
 		"source-map-support": "^0.5.21",
 		"swagger-ui-express": "^4.5.0",
-		"typeorm": "^0.3.10",
+		"typeorm": "^0.3.17",
 		"yargs": "^17.5.1"
 	},
 	"devDependencies": {
