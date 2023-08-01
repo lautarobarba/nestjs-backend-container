@@ -14,8 +14,9 @@ import { Exclude } from "class-transformer";
 import { Note } from "../note/note.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Role } from "../auth/role.enum";
-import { ProfilePicture } from "./profile-picture.entity";
+// import { ProfilePicture } from "./profile-picture.entity";
 import { Group } from "../group/group.entity";
+import { Image } from "../image/image.entity";
 
 export enum Status {
   ACTIVE = "ACTIVE",
@@ -68,13 +69,13 @@ export class User extends BaseEntity {
 
   // Relation
   @ApiProperty({
-    type: () => ProfilePicture,
+    type: () => Image,
   })
-  @OneToOne(() => ProfilePicture, (profilePicture) => profilePicture.user)
+  @OneToOne(() => Image, (profilePicture) => {})
   @JoinColumn({
     name: "profile_picture_id",
   })
-  profilePicture: ProfilePicture;
+  profilePicture: Image;
 
   @Exclude()
   @Column({
