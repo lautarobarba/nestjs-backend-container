@@ -30,13 +30,14 @@ $ docker compose down
 ## Debug
 
 ```bash
-$ docker compose exec -it nest_back bash
+$ docker compose exec -it renaper_service bash
 ```
 
 ## Instalar nuevas librerías
 
 ```bash
-$ docker compose exec -it nest_back bash -c "npm install NPM_PACKAGE"
+$ docker compose exec -it renaper_service bash -c "pip install PYTHON_LIB"
+$ docker compose exec -it renaper_service bash -c "pip freeze > requirements.txt"
 ```
 
 ## Recursos NestJS
