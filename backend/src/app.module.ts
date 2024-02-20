@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { ENV_VAR } from "config";
 import { AppController } from "app.controller";
 import { AppService } from "app.service";
 import { BullModule } from "@nestjs/bull";
@@ -13,14 +14,13 @@ import { CronModule } from "modules/cron/cron.module";
 
 @Module({
   imports: [
-    // PostgreSQL connection
-    // DatabaseModule,
+    DatabaseModule,
     // Redis connection for queues
     BullModule.forRootAsync({
       useFactory: async () => ({
         redis: {
-          host: "redis",
-          port: 6379,
+          host: ENV_VAR.REDIS_HOST,
+          port: ENV_VAR.REDIS_PORT,
         },
       }),
     }),
@@ -43,6 +43,6 @@ export class AppModule {
   static port: number | string;
 
   constructor() {
-    AppModule.port = process.env.APP_PORT || 3000;
+    AppModule.port = ENV_VAR.BACK_PORT;
   }
 }

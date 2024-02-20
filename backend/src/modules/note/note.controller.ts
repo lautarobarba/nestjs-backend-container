@@ -22,7 +22,7 @@ import { IJWTPayload } from "modules/auth/jwt-payload.interface";
 import { User } from "modules/user/user.entity";
 import { UserService } from "modules/user/user.service";
 import { CreateNoteDto, UpdateNoteDto } from "./note.dto";
-import { Note } from "./note.entity";
+import { Note } from "./note.schema";
 import { NoteService } from "./note.service";
 
 @ApiTags("Notas")
@@ -37,16 +37,21 @@ export class NoteController {
   @UseInterceptors(ClassSerializerInterceptor)
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Note,
+    // type: Note,
     isArray: true,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: "Error: Unauthorized",
   })
-  async test(@Res({ passthrough: true }) response: Response) {
+  async getNotes(@Res({ passthrough: true }) response: Response) {
     this._logger.debug("GET: /api/test");
     response.status(HttpStatus.OK);
     return this._noteService.test();
+  }
+
+  @Get("test")
+  async test() {
+    return this._noteService.test("params_1", "params_2");
   }
 }

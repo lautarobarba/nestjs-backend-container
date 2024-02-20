@@ -12,7 +12,7 @@ services:
     restart: always
     env_file: .env
     ports:
-      - ${BACK_PORT}:3000
+      - ${BACK_PORT}:${BACK_PORT}
     volumes:
       - ./backend:/app
       - ./start.sh:/start.sh

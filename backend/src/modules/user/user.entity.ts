@@ -11,7 +11,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Exclude } from "class-transformer";
-import { Note } from "../note/note.entity";
+import { Note } from "../note/note.schema";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Role } from "../auth/role.enum";
 // import { ProfilePicture } from "./profile-picture.entity";
@@ -133,9 +133,9 @@ export class User extends BaseEntity {
   })
   deleted: boolean;
 
-  // Relation
-  @OneToMany(() => Note, (note) => note.user)
-  notes: Note[];
+  // // Relation
+  // @OneToMany(() => Note, (note) => note.user)
+  // notes: Note[];
 
   // Relation
   @ManyToMany(() => Group, (group) => group.users, {
