@@ -1,32 +1,44 @@
-version: "3.8"
 name: nest_back
 services:
   nest_back:
     container_name: nest_back
-    image: nest_back:1.0.0
     build:
       context: .
       target: base
       dockerfile: ./Dockerfile
-    command: bash /start.sh
+    image: nest_back:dev
+    platform: "linux/x86_64"
+    command: sh -c "npm install && npm start"
+    # command: sh -c "npm install && npm run start:prod"
     restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api"]
+      interval: 30s
+      retries: 3
+      start_period: 60s
+      timeout: 5s
     env_file: .env
     environment:
-      - DB_HOST=host.docker.internal
+      - TZ=America/Argentina/Buenos_Aires
     ports:
       - ${BACK_PORT}:3000
     volumes:
       - ./backend:/app
-      - ./start.sh:/start.sh
-    depends_on:
-      - "redis"
-    links:
-      - "redis"
     extra_hosts:
       - host.docker.internal:host-gateway
 
   redis:
+    container_name: redis
     image: "redis:alpine"
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 3
+      start_period: 3s
+      timeout: 3s
     # ports:
     #   - "6379:6379"

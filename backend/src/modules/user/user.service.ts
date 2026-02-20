@@ -1,9 +1,11 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   Logger,
   NotAcceptableException,
   NotFoundException,
+  forwardRef,
 } from "@nestjs/common";
 import { Request } from "express";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -25,6 +27,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly _userRepository: Repository<User>,
+    @Inject(forwardRef(() => ImageService))
     private readonly _imageService: ImageService
   ) {}
   private readonly _logger = new Logger(UserService.name);
