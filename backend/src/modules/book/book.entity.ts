@@ -4,15 +4,17 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  ManyToOne,
-  JoinColumn,
 } from "typeorm";
-import { Book } from "../book/book.entity";
+import { User } from "../user/user.entity";
+import { Note } from "../note/note.entity";
 
-@Entity("notes")
-export class Note extends BaseEntity {
+@Entity("books")
+export class Book extends BaseEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn("increment")
   id: number;
@@ -22,32 +24,29 @@ export class Note extends BaseEntity {
     name: "title",
     type: "varchar",
     nullable: false,
-    unique: true,
+    length: 255,
   })
   title: string;
 
   @ApiProperty()
   @Column({
-    name: "content",
+    name: "description",
     type: "text",
-    nullable: false,
-    unique: false,
+    nullable: true,
   })
-  content: string;
+  description: string | null;
 
-  // Relation
-  @ApiProperty({
-    type: () => Book,
-  })
-  @ManyToOne(() => Book, (book) => book.notes, {
+  @ApiProperty({ type: () => User })
+  @ManyToOne(() => User, (user) => user.books, {
     onDelete: "RESTRICT",
     onUpdate: "CASCADE",
     eager: false,
   })
-  @JoinColumn({
-    name: "book_id",
-  })
-  book: Book;
+  @JoinColumn({ name: "user_id" })
+  user: User;
+
+  @OneToMany(() => Note, (note) => note.book)
+  notes: Note[];
 
   @ApiProperty()
   @CreateDateColumn({ name: "created_at" })

@@ -10,6 +10,7 @@ import { RoleModule } from './modules/role/role.module';
 import { MailerModule } from './modules/mailer/mailer.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronModule } from 'modules/cron/cron.module';
+import { BookModule } from 'modules/book/book.module';
 
 
 @Module({
@@ -35,6 +36,7 @@ import { CronModule } from 'modules/cron/cron.module';
 		MailerModule,
 		CronModule,
 		// App modules 
+		BookModule,
 		NoteModule,
 	],
 	controllers: [AppController],

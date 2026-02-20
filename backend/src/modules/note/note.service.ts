@@ -1,133 +1,159 @@
-import { ConflictException, Injectable, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserService } from 'modules/user/user.service';
-import { Repository } from 'typeorm';
-import { CreateNoteDto, UpdateNoteDto } from './note.dto';
-import { Note } from './note.entity';
-import * as moment from 'moment';
-import { validate } from 'class-validator';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotAcceptableException,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { ADMIN_ROLE_NAME } from "modules/auth/role.constants";
+import { Book } from "modules/book/book.entity";
+import { User } from "modules/user/user.entity";
+import { UserService } from "modules/user/user.service";
+import { Repository } from "typeorm";
+import { CreateNoteDto, UpdateNoteDto } from "./note.dto";
+import { Note } from "./note.entity";
+import * as moment from "moment";
+import { validate } from "class-validator";
 
 @Injectable()
 export class NoteService {
-	constructor(
-		@InjectRepository(Note)
-		private readonly _noteRepository: Repository<Note>,
-		private readonly _userService: UserService
-	) { }
-	private readonly _logger = new Logger(NoteService.name);
+  constructor(
+    @InjectRepository(Note)
+    private readonly _noteRepository: Repository<Note>,
+    @InjectRepository(Book)
+    private readonly _bookRepository: Repository<Book>,
+    private readonly _userService: UserService
+  ) {}
+  private readonly _logger = new Logger(NoteService.name);
 
-	async create(createNoteDto: CreateNoteDto): Promise<Note> {
-		this._logger.debug('create()');
-		const { title, content, userId } = createNoteDto;
-		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
+  private isAdmin(user: User): boolean {
+    return this._userService.hasRole(user, ADMIN_ROLE_NAME);
+  }
 
-		// Controlo que la nueva nota no exista
-		const exists: Note = await this._noteRepository.findOne({
-			where: { title },
-		});
+  private async getBookForActor(bookId: number, actor: User): Promise<Book> {
+    const book = await this._bookRepository.findOne({
+      where: { id: bookId, deleted: false },
+      relations: ["user"],
+    });
+    if (!book) throw new NotFoundException("Error: Not Found");
+    if (!this.isAdmin(actor) && book.user.id !== actor.id) {
+      throw new ForbiddenException("Error: Forbidden");
+    }
+    return book;
+  }
 
-		// Si existe y no esta borrado lógico entonces hay conflictos
-		if (exists && !exists.deleted)
-			throw new ConflictException('Error: Keys already in use');
+  private async getNoteForActor(noteId: number, actor: User): Promise<Note> {
+    const note = await this._noteRepository.findOne({
+      where: { id: noteId },
+      relations: ["book", "book.user"],
+    });
+    if (!note || note.deleted) throw new NotFoundException("Error: Not Found");
+    if (!this.isAdmin(actor) && note.book.user.id !== actor.id) {
+      throw new ForbiddenException("Error: Forbidden");
+    }
+    return note;
+  }
 
-		// Si existe pero estaba borrado lógico entonces lo recupero
-		if (exists && exists.deleted) {
-			exists.content = content;
-			exists.user = await this._userService.findOne(userId);
-			exists.deleted = false;
-			exists.updatedAt = timestamp;
+  async create(createNoteDto: CreateNoteDto, actor: User): Promise<Note> {
+    this._logger.debug("create()");
+    const timestamp: any = moment().format("YYYY-MM-DD HH:mm:ss");
+    const { title, content, bookId } = createNoteDto;
 
-			// Controlo que el modelo no tenga errores antes de guardar
-			const errors = await validate(exists);
-			if (errors && errors.length > 0) throw new NotAcceptableException();
+    const book = await this.getBookForActor(bookId, actor);
 
-			return this._noteRepository.save(exists);
-		}
+    const exists: Note = await this._noteRepository.findOne({
+      where: { title },
+    });
 
-		// Si no existe entonces creo uno nuevo
-		const note: Note = this._noteRepository.create();
-		note.title = title;
-		note.content = content;
-		note.user = await this._userService.findOne(userId);
-		note.updatedAt = timestamp;
-		note.createdAt = timestamp;
+    if (exists && !exists.deleted) {
+      throw new ConflictException("Error: Keys already in use");
+    }
 
-		// Controlo que el modelo no tenga errores antes de guardar
-		const errors = await validate(note);
-		if (errors && errors.length > 0) throw new NotAcceptableException();
+    if (exists && exists.deleted) {
+      exists.content = content;
+      exists.book = book;
+      exists.deleted = false;
+      exists.updatedAt = timestamp;
 
-		return this._noteRepository.save(note);
-	}
+      const errors = await validate(exists);
+      if (errors.length > 0) throw new NotAcceptableException("Error: Not Acceptable");
+      return this._noteRepository.save(exists);
+    }
 
-	async findAll(): Promise<Note[]> {
-		this._logger.debug('findAll()');
-		return this._noteRepository.find({
-			where: { deleted: false },
-			order: { id: 'ASC' },
-			relations: ['user'],
-		});
-	}
+    const note: Note = this._noteRepository.create();
+    note.title = title;
+    note.content = content;
+    note.book = book;
+    note.updatedAt = timestamp;
+    note.createdAt = timestamp;
 
-	async findOne(id: number): Promise<Note> {
-		this._logger.debug('findOne()');
-		return this._noteRepository.findOne({
-			where: { id },
-			relations: ['user'],
-		});
-	}
+    const errors = await validate(note);
+    if (errors.length > 0) throw new NotAcceptableException("Error: Not Acceptable");
+    return this._noteRepository.save(note);
+  }
 
-	async update(updateNoteDto: UpdateNoteDto): Promise<Note> {
-		this._logger.debug('update()');
-		const { id, title, content, userId } = updateNoteDto;
-		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
+  async findAll(actor: User): Promise<Note[]> {
+    this._logger.debug("findAll()");
 
-		const note: Note = await this._noteRepository.findOne({
-			where: { id },
-		});
+    if (this.isAdmin(actor)) {
+      return this._noteRepository.find({
+        where: { deleted: false },
+        order: { id: "ASC" },
+        relations: ["book", "book.user"],
+      });
+    }
 
-		if (!note) throw new NotFoundException();
+    return this._noteRepository.find({
+      where: { deleted: false, book: { user: { id: actor.id } as User } as Book },
+      order: { id: "ASC" },
+      relations: ["book", "book.user"],
+    });
+  }
 
-		// Controlo que las claves no estén en uso
-		if (title) {
-			const exists: Note = await this._noteRepository.findOne({
-				where: { title },
-			});
+  async findOne(id: number, actor: User): Promise<Note> {
+    this._logger.debug("findOne()");
+    return this.getNoteForActor(id, actor);
+  }
 
-			// Si existe y no esta borrado lógico entonces hay conflictos
-			if (exists && !exists.deleted && exists.id !== id)
-				throw new ConflictException('Error: Keys already in use');
-		}
+  async update(updateNoteDto: UpdateNoteDto, actor: User): Promise<Note> {
+    this._logger.debug("update()");
+    const timestamp: any = moment().format("YYYY-MM-DD HH:mm:ss");
+    const { id, title, content, bookId } = updateNoteDto;
 
-		// Si no hay problemas actualizo los atributos
-		if (title) note.title = title;
-		if (content) note.content = content;
-		if (userId) note.user = await this._userService.findOne(userId);
-		note.updatedAt = timestamp;
+    const note = await this.getNoteForActor(id, actor);
 
-		// Controlo que el modelo no tenga errores antes de guardar
-		const errors = await validate(note);
-		if (errors && errors.length > 0) throw new NotAcceptableException();
+    if (title && title !== note.title) {
+      const exists = await this._noteRepository.findOne({ where: { title } });
+      if (exists && !exists.deleted && exists.id !== id) {
+        throw new ConflictException("Error: Keys already in use");
+      }
+      note.title = title;
+    }
 
-		return this._noteRepository.save(note);
-	}
+    if (content) note.content = content;
 
-	async delete(id: number): Promise<void> {
-		this._logger.debug('delete()');
-		const timestamp: any = moment().format('YYYY-MM-DD HH:mm:ss');
+    if (bookId) {
+      note.book = await this.getBookForActor(bookId, actor);
+    }
 
-		const note: Note = await this._noteRepository.findOne({
-			where: { id },
-		});
+    note.updatedAt = timestamp;
+    const errors = await validate(note);
+    if (errors.length > 0) throw new NotAcceptableException("Error: Not Acceptable");
+    return this._noteRepository.save(note);
+  }
 
-		if (!note) throw new NotFoundException();
+  async delete(id: number, actor: User): Promise<void> {
+    this._logger.debug("delete()");
+    const timestamp: any = moment().format("YYYY-MM-DD HH:mm:ss");
 
-		note.deleted = true;
-		note.updatedAt = timestamp;
+    const note = await this.getNoteForActor(id, actor);
+    note.deleted = true;
+    note.updatedAt = timestamp;
 
-		// Controlo que el modelo no tenga errores antes de guardar
-		const errors = await validate(note);
-		if (errors && errors.length > 0) throw new NotAcceptableException();
-
-		this._noteRepository.save(note);
-	}
+    const errors = await validate(note);
+    if (errors.length > 0) throw new NotAcceptableException("Error: Not Acceptable");
+    await this._noteRepository.save(note);
+  }
 }

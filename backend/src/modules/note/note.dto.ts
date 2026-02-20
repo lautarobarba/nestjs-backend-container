@@ -8,7 +8,7 @@ export class CreateNoteDto {
 	content: string;
 
 	@ApiProperty()
-	userId: number;
+	bookId: number;
 }
 
 export class UpdateNoteDto {
@@ -22,5 +22,5 @@ export class UpdateNoteDto {
 	content?: string;
 
 	@ApiPropertyOptional()
-	userId?: number;
+	bookId?: number;
 }

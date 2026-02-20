@@ -12,11 +12,11 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Exclude } from "class-transformer";
-import { Note } from "../note/note.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 // import { ProfilePicture } from "./profile-picture.entity";
 import { Image } from "../image/image.entity";
 import { Role } from "../role/role.entity";
+import { Book } from "../book/book.entity";
 
 export enum Status {
   ACTIVE = "ACTIVE",
@@ -124,8 +124,8 @@ export class User extends BaseEntity {
   deleted: boolean;
 
   // Relation
-  @OneToMany(() => Note, (note) => note.user)
-  notes: Note[];
+  @OneToMany(() => Book, (book) => book.user)
+  books: Book[];
 
   // Relation
   @ManyToMany(() => Role, (role) => role.users, {
