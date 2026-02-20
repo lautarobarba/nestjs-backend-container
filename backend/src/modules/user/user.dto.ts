@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from '../auth/role.enum';
 import { Express } from 'express';
 
 export class CreateUserDto {
@@ -47,6 +46,6 @@ export class UpdateUserDto {
 	@ApiPropertyOptional()
 	status?: string;
 
-	@ApiPropertyOptional()
-	role?: Role;
+	@ApiPropertyOptional({ type: [String] })
+	roles?: string[];
 }

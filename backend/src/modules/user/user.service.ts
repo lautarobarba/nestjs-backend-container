@@ -9,24 +9,26 @@ import {
 } from "@nestjs/common";
 import { Request } from "express";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { CreateUserDto, UpdateUserDto } from "./user.dto";
 import { Status, User } from "./user.entity";
 import * as moment from "moment";
 import * as mv from "mv";
 import * as fs from "fs";
 import { validate } from "class-validator";
-import { Role } from "../auth/role.enum";
 import { IJWTPayload } from "modules/auth/jwt-payload.interface";
 import { ImageService } from "modules/image/image.service";
 import { CreateImageDto } from "modules/image/image.dto";
 import { Image } from "modules/image/image.entity";
+import { Role } from "modules/role/role.entity";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly _userRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly _roleRepository: Repository<Role>,
     @Inject(forwardRef(() => ImageService))
     private readonly _imageService: ImageService
   ) {}
@@ -96,7 +98,7 @@ export class UserService {
     user.lastname = lastname;
     user.password = password;
     user.status = Status.ACTIVE;
-    user.role = Role.USER;
+    user.roles = [];
     user.updatedAt = timestamp;
     user.createdAt = timestamp;
 
@@ -146,7 +148,7 @@ export class UserService {
     this._logger.debug("findOne()");
     return this._userRepository.findOne({
       where: { id },
-      relations: ["profilePicture"],
+      relations: ["profilePicture", "roles"],
     });
   }
 
@@ -154,6 +156,7 @@ export class UserService {
     this._logger.debug("findOneById()");
     return this._userRepository.findOne({
       where: { id },
+      relations: ["roles"],
     });
   }
 
@@ -161,12 +164,13 @@ export class UserService {
     this._logger.debug("findOneByEmail()");
     return this._userRepository.findOne({
       where: { email },
+      relations: ["roles"],
     });
   }
 
   async update(updateUserDto: UpdateUserDto): Promise<User> {
     this._logger.debug("update()");
-    const { id, email, isEmailConfirmed, firstname, lastname, status, role } =
+    const { id, email, isEmailConfirmed, firstname, lastname, status, roles } =
       updateUserDto;
     const timestamp: any = moment().format("YYYY-MM-DD HH:mm:ss");
 
@@ -194,7 +198,21 @@ export class UserService {
     if (firstname) user.firstname = firstname;
     if (lastname) user.lastname = lastname;
     if (status) user.status = status;
-    if (role) user.role = role;
+    if (roles) {
+      const normalizedRoles = [...new Set(roles.map((roleName) => roleName.trim()))].filter(
+        (roleName) => roleName.length > 0
+      );
+
+      const roleEntities = await this._roleRepository.find({
+        where: { name: In(normalizedRoles) },
+      });
+
+      if (roleEntities.length !== normalizedRoles.length) {
+        throw new NotFoundException("Error: Roles not found");
+      }
+
+      user.roles = roleEntities;
+    }
     user.updatedAt = timestamp;
 
     // // Actualizo foto de perfil
@@ -300,6 +318,7 @@ export class UserService {
     const session: IJWTPayload = request.user as IJWTPayload;
     const user: User = await this._userRepository.findOne({
       where: { id: session.sub },
+      relations: ["roles"],
     });
 
     if (!user) {
@@ -308,6 +327,14 @@ export class UserService {
     }
 
     return user;
+  }
+
+  hasRole(user: User, roleName: string): boolean {
+    return (
+      user.roles?.some(
+        (role) => role.name.toLowerCase() === roleName.toLowerCase()
+      ) ?? false
+    );
   }
 
   async getProfilePicture(id: number): Promise<Image> {

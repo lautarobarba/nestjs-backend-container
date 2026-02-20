@@ -1,15 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
-  Entity,
-  PrimaryGeneratedColumn,
+  BaseEntity,
   Column,
+  CreateDateColumn,
+  Entity,
   ManyToMany,
-  JoinTable,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from "typeorm";
 import { User } from "../user/user.entity";
 
-@Entity("groups")
-export class Group {
+@Entity("roles")
+export class Role extends BaseEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn("increment")
   id: number;
@@ -20,27 +22,22 @@ export class Group {
     type: "varchar",
     nullable: false,
     unique: true,
+    length: 255,
   })
   name: string;
 
-  @ApiProperty({
-    type: User,
-  })
-  @ManyToMany(() => User, (user) => user.groups, {
+  @ApiProperty()
+  @CreateDateColumn({ name: "created_at" })
+  createdAt: Date;
+
+  @ApiProperty()
+  @UpdateDateColumn({ name: "updated_at" })
+  updatedAt: Date;
+
+  @ManyToMany(() => User, (user) => user.roles, {
     onDelete: "RESTRICT",
     onUpdate: "CASCADE",
     eager: false,
-  })
-  @JoinTable({
-    name: "groups_users",
-    joinColumn: {
-      name: "group_id",
-      referencedColumnName: "id",
-    },
-    inverseJoinColumn: {
-      name: "user_id",
-      referencedColumnName: "id",
-    },
   })
   users: User[];
 }

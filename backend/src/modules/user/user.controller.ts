@@ -29,12 +29,12 @@ import { UpdateUserDto } from "./user.dto";
 import { User } from "./user.entity";
 import { UserService } from "./user.service";
 import { RoleGuard } from "modules/auth/guards/role.guard";
-import { Role } from "../auth/role.enum";
 import { IsEmailConfirmedGuard } from "modules/auth/guards/is-email-confirmed.guard";
 import { LocalFilesInterceptor } from "modules/utils/localFiles.interceptor";
 import { createReadStream } from "fs";
 import { join } from "path";
 import { Image } from "modules/image/image.entity";
+import { ADMIN_ROLE_NAME } from "modules/auth/role.constants";
 
 @Controller("user")
 @ApiTags("Usuarios")
@@ -43,7 +43,7 @@ export class UserController {
   private readonly _logger = new Logger(UserController.name);
 
   @Get()
-  @UseGuards(RoleGuard([Role.ADMIN]))
+  @UseGuards(RoleGuard([ADMIN_ROLE_NAME]))
   @UseGuards(IsEmailConfirmedGuard())
   @UseInterceptors(ClassSerializerInterceptor)
   @ApiBearerAuth()
@@ -115,7 +115,7 @@ export class UserController {
     // Sólo administradores y propietarios pueden editar
     const user: User = await this._userService.getUserFromRequest(request);
 
-    if (user.role !== Role.ADMIN && user.id != updateUserDto.id)
+    if (!this._userService.hasRole(user, ADMIN_ROLE_NAME) && user.id != updateUserDto.id)
       throw new UnauthorizedException("Not allow");
 
     // Agrego la foto de perfil al DTO para enviarlo al service
@@ -146,7 +146,7 @@ export class UserController {
   }
 
   @Delete(":id")
-  @UseGuards(RoleGuard([Role.ADMIN]))
+  @UseGuards(RoleGuard([ADMIN_ROLE_NAME]))
   @UseGuards(IsEmailConfirmedGuard())
   @UseInterceptors(ClassSerializerInterceptor)
   @ApiBearerAuth()

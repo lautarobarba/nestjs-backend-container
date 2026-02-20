@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
   ManyToMany,
   OneToMany,
   OneToOne,
@@ -13,10 +14,9 @@ import {
 import { Exclude } from "class-transformer";
 import { Note } from "../note/note.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Role } from "../auth/role.enum";
 // import { ProfilePicture } from "./profile-picture.entity";
-import { Group } from "../group/group.entity";
 import { Image } from "../image/image.entity";
+import { Role } from "../role/role.entity";
 
 export enum Status {
   ACTIVE = "ACTIVE",
@@ -108,16 +108,6 @@ export class User extends BaseEntity {
   status: string;
 
   @ApiProperty()
-  @Column({
-    name: "role",
-    type: "enum",
-    enum: Role,
-    default: Role.USER,
-    nullable: false,
-  })
-  role: Role;
-
-  @ApiProperty()
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
@@ -138,10 +128,21 @@ export class User extends BaseEntity {
   notes: Note[];
 
   // Relation
-  @ManyToMany(() => Group, (group) => group.users, {
+  @ManyToMany(() => Role, (role) => role.users, {
     onDelete: "RESTRICT",
     onUpdate: "CASCADE",
     eager: true,
   })
-  groups: Group[];
+  @JoinTable({
+    name: "users_roles",
+    joinColumn: {
+      name: "user_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "role_id",
+      referencedColumnName: "id",
+    },
+  })
+  roles: Role[];
 }

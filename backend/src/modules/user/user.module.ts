@@ -5,9 +5,10 @@ import { UserController } from "./user.controller";
 import { User } from "./user.entity";
 import { MulterModule } from "@nestjs/platform-express";
 import { ImageModule } from "modules/image/image.module";
+import { Role } from "modules/role/role.entity";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => ImageModule)],
+  imports: [TypeOrmModule.forFeature([User, Role]), forwardRef(() => ImageModule)],
   providers: [UserService],
   controllers: [UserController],
   exports: [UserService],

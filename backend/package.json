@@ -25,7 +25,7 @@
 		"migration:show": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts migration:show",
 		"migration:generate": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts migration:generate src/database/migrations/$npm_config_name",
 		"migration:run": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts migration:run",
-		"create-admin": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts query \"INSERT INTO users(email, firstname, lastname, password, status, role) VALUES('admin@admin.com', 'admin', 'admin', '2a0$PnRAugDwGCo3unlJELH/E.9Tkytn3W90zmdVK1hcZnQ8cFP9xUhNK', 'ACTIVE', 'ADMIN')\""
+		"create-admin": "ts-node ./node_modules/typeorm/cli --dataSource src/database/data-source.ts query \"WITH admin_role AS (INSERT INTO roles(name) VALUES('Administrador') ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id), inserted_user AS (INSERT INTO users(email, firstname, lastname, password, status) VALUES('admin@admin.com', 'admin', 'admin', '2a0$PnRAugDwGCo3unlJELH/E.9Tkytn3W90zmdVK1hcZnQ8cFP9xUhNK', 'ACTIVE') ON CONFLICT (email) DO UPDATE SET deleted = false RETURNING id) INSERT INTO users_roles(user_id, role_id) SELECT inserted_user.id, admin_role.id FROM inserted_user CROSS JOIN admin_role ON CONFLICT (user_id, role_id) DO NOTHING\""
 	},
 	"dependencies": {
 		"@nestjs-modules/mailer": "^2.0.2",

@@ -27,9 +27,9 @@ import { IJWTPayload } from './jwt-payload.interface';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { IsEmailConfirmedGuard } from './guards/is-email-confirmed.guard';
 import { RoleGuard } from 'modules/auth/guards/role.guard';
-import { Role } from '../auth/role.enum';
 import { LocalFilesInterceptor } from 'modules/utils/localFiles.interceptor';
 import { MENSAJE_ERROR } from 'modules/utils/error-message';
+import { ADMIN_ROLE_NAME } from './role.constants';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -205,7 +205,7 @@ export class AuthController {
 		// Sólo administradores y propietarios pueden actualizar contraseñas
 		const user: User = await this._userService.getUserFromRequest(request);
 
-		if ((user.role !== Role.ADMIN) && (user.id != changePasswordDto.id)) {
+		if (!this._userService.hasRole(user, ADMIN_ROLE_NAME) && (user.id != changePasswordDto.id)) {
 			this._logger.debug('Error: Not allow');
 			throw new UnauthorizedException('Error: Not allow');
 		}
@@ -360,7 +360,7 @@ export class AuthController {
 	}
 
 	@Get('test-role-permission')
-	@UseGuards(RoleGuard([Role.ADMIN]))
+	@UseGuards(RoleGuard([ADMIN_ROLE_NAME]))
 	@UseGuards(IsEmailConfirmedGuard())
 	@ApiBearerAuth()
 	@ApiResponse({

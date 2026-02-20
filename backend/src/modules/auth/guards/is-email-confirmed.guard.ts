@@ -20,12 +20,11 @@ export const IsEmailConfirmedGuard = (): Type<CanActivate> => {
 
       const request: RequestWithUser = context.switchToHttp().getRequest<RequestWithUser>();
       const payload: IJWTPayload = request.user;
-      // console.log(payload);
       const user: User = await this._userService.findOne(payload.sub);
-      // console.log(user);
+      const userRoles = (user.roles ?? []).map((role) => role.name).join(", ");
 
       if (!user.isEmailConfirmed) {
-        this._logger.debug(`El usuario ${user.email} no confirmó su correo electrónico. NO PUEDE INGRESAR. Role: ${user.role}`);
+        this._logger.debug(`El usuario ${user.email} no confirmó su correo electrónico. NO PUEDE INGRESAR. Roles: ${userRoles}`);
       }
 
       return user.isEmailConfirmed;

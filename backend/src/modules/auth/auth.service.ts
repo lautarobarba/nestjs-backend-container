@@ -14,7 +14,7 @@ import { UserService } from 'modules/user/user.service';
 import { User } from '../user/user.entity';
 import { ChangePasswordDto, LoginDto, RecoverPasswordDto, SessionDto } from './auth.dto';
 import { MailerService } from '../mailer/mailer.service';
-import { Role } from '../auth/role.enum';
+import { ADMIN_ROLE_NAME } from './role.constants';
 
 type JwtExpiresIn = NonNullable<import('jsonwebtoken').SignOptions['expiresIn']>;
 
@@ -160,19 +160,22 @@ export class AuthService {
 	async testPrivateRoute(id: number): Promise<string> {
 		this._logger.debug('testPrivateRoute()');
 		const user: User = await this._userService.findOne(id);
-		return `Este sitio sólo se puede ver si el usuario está autenticado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
+		const roles = (user.roles ?? []).map((role) => role.name).join(', ');
+		return `Este sitio sólo se puede ver si el usuario está autenticado.\nUSER_ID: ${user.id}\nROLES: ${roles}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
 
 	async testEmailConfirmed(id: number): Promise<string> {
 		this._logger.debug('testEmailConfirmed()');
 		const user: User = await this._userService.findOne(id);
-		return `Este sitio sólo se puede ver si el usuario está autenticado y tiene el correo electrónico confirmado.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
+		const roles = (user.roles ?? []).map((role) => role.name).join(', ');
+		return `Este sitio sólo se puede ver si el usuario está autenticado y tiene el correo electrónico confirmado.\nUSER_ID: ${user.id}\nROLES: ${roles}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
 
 	async testRolePermission(id: number): Promise<string> {
 		this._logger.debug('testRolePermission()');
 		const user: User = await this._userService.findOne(id);
-		return `Este sitio sólo se puede ver si el usuario está autenticado, tiene el correo electrónico confirmado y tiene rol de ${Role.ADMIN}.\nUSER_ID: ${user.id}\nROLE: ${user.role}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
+		const roles = (user.roles ?? []).map((role) => role.name).join(', ');
+		return `Este sitio sólo se puede ver si el usuario está autenticado, tiene el correo electrónico confirmado y tiene rol de ${ADMIN_ROLE_NAME}.\nUSER_ID: ${user.id}\nROLES: ${roles}\nFIRST_NAME: ${user.firstname}\nLAST_NAME: ${user.lastname}\nEMAIL: ${user.email}`;
 	}
 
 	async updateRefreshToken(id: number, refreshToken: string) {
