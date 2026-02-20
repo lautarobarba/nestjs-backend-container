@@ -16,6 +16,8 @@ import { ChangePasswordDto, LoginDto, RecoverPasswordDto, SessionDto } from './a
 import { MailerService } from '../mailer/mailer.service';
 import { Role } from '../auth/role.enum';
 
+type JwtExpiresIn = NonNullable<import('jsonwebtoken').SignOptions['expiresIn']>;
+
 @Injectable()
 export class AuthService {
 	constructor(
@@ -183,28 +185,30 @@ export class AuthService {
 
 	async getTokens(id: number, email: string): Promise<SessionDto> {
 		this._logger.debug('getTokens()');
+		const accessTokenExpiresIn = (process.env.JWT_EXPIRATION_TIME ?? '1d') as JwtExpiresIn;
+		const refreshTokenExpiresIn = (process.env.JWT_REFRESH_EXPIRATION_TIME ?? '7d') as JwtExpiresIn;
 		const [accessToken, refreshToken] = await Promise.all([
 			this._jwtService.signAsync(
 				{
 					sub: id,
 					email,
 				},
-				{
-					secret: process.env.JWT_SECRET,
-					expiresIn: process.env.JWT_EXPIRATION_TIME ?? '1d',
-				}
-			),
+					{
+						secret: process.env.JWT_SECRET,
+						expiresIn: accessTokenExpiresIn,
+					}
+				),
 			this._jwtService.signAsync(
 				{
 					sub: id,
 					email,
 				},
-				{
-					secret: process.env.JWT_SECRET,
-					expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME ?? '7d',
-				}
-			),
-		]);
+					{
+						secret: process.env.JWT_SECRET,
+						expiresIn: refreshTokenExpiresIn,
+					}
+				),
+			]);
 
 		const tokens: SessionDto = {
 			accessToken,

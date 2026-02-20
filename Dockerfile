@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 
-FROM node:18-bookworm-slim AS base
+FROM node:24-bookworm-slim AS base
 WORKDIR /app
 ENV NODE_ENV=development
 
@@ -23,7 +23,7 @@ FROM base AS build
 ENV NODE_ENV=production
 RUN npm run build && npm prune --omit=dev
 
-FROM node:18-bookworm-slim AS runtime
+FROM node:24-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
