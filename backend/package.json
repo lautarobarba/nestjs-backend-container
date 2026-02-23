@@ -9,6 +9,9 @@
 		"node": ">=24.0.0"
 	},
 	"license": "UNLICENSED",
+	"overrides": {
+		"html-minifier": "npm:html-minifier-terser@^7.2.0"
+	},
 	"scripts": {
 		"prebuild": "rimraf dist",
 		"build": "nest build",
