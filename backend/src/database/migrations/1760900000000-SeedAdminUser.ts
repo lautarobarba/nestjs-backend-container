@@ -1,4 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
+import * as bcrypt from "bcryptjs";
 
 export class SeedAdminUser1760900000000 implements MigrationInterface {
   name = "SeedAdminUser1760900000000";
@@ -14,9 +15,8 @@ export class SeedAdminUser1760900000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const adminEmail = "admin@admin.com";
     const adminRoleName = "Administrador";
-    // Hash para 'admin123' (ejemplo, ajusta según sea necesario)
-    const adminPassword =
-      "$2a$10$PnRAugDwGCo3unlJELH/E.9Tkytn3W90zmdVK1hcZnQ8cFP9xUhNK";
+    // Hashear la contraseña por defecto 'admin' en tiempo de ejecución
+    const adminPassword = await bcrypt.hash("admin", 10);
 
     if (this.isPostgres(queryRunner)) {
       await queryRunner.query(`
