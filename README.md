@@ -46,7 +46,7 @@ $ # Cambiamos el owner para que nos deje editar
 $ sudo chown -R ${USER}:${USER} backend/src/modules
 ```
 
-<!-- ## Migraciones TypeORM
+## Migraciones TypeORM
 
 ```bash
 $ # Ver migraciones aplicadas:
@@ -55,7 +55,7 @@ $ # Generar migración
 $ docker compose exec -it nest_back bash -c "npm run migration:generate --name=nombreMigracion"
 $ # Aplicar migraciones
 $ docker compose exec -it nest_back bash -c "npm run migration:run"
-``` -->
+```
 
 ## Crear administrador
 
