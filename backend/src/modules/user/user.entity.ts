@@ -12,7 +12,8 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Exclude } from "class-transformer";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
 // import { ProfilePicture } from "./profile-picture.entity";
 import { Image } from "../image/image.entity";
 import { Role } from "../role/role.entity";
@@ -30,6 +31,9 @@ export class User extends BaseEntity {
   id: number;
 
   @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  @MaxLength(255)
   @Column({
     name: "email",
     type: "varchar",
@@ -40,6 +44,8 @@ export class User extends BaseEntity {
   email: string;
 
   @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
   @Column({
     name: "is_email_confirmed",
     type: "boolean",
@@ -48,6 +54,9 @@ export class User extends BaseEntity {
   isEmailConfirmed: boolean;
 
   @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   @Column({
     name: "firstname",
     type: "varchar",
@@ -58,6 +67,9 @@ export class User extends BaseEntity {
   firstname: string;
 
   @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   @Column({
     name: "lastname",
     type: "varchar",
@@ -71,6 +83,7 @@ export class User extends BaseEntity {
   @ApiProperty({
     type: () => Image,
   })
+  @IsOptional()
   @OneToOne(() => Image, (profilePicture) => {})
   @JoinColumn({
     name: "profile_picture_id",
@@ -78,6 +91,9 @@ export class User extends BaseEntity {
   profilePicture: Image;
 
   @Exclude()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   @Column({
     name: "password",
     type: "varchar",
@@ -88,6 +104,9 @@ export class User extends BaseEntity {
   password: string;
 
   @Exclude()
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
   @Column({
     name: "refresh_token",
     type: "varchar",
@@ -98,6 +117,8 @@ export class User extends BaseEntity {
   refreshToken: string;
 
   @ApiProperty()
+  @IsEnum(Status)
+  @IsNotEmpty()
   @Column({
     name: "status",
     type: "enum",
@@ -116,6 +137,8 @@ export class User extends BaseEntity {
   updatedAt: Date;
 
   @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
   @Column({
     name: "deleted",
     type: "boolean",

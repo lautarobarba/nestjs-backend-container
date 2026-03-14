@@ -274,10 +274,13 @@ export class UserService {
     user.refreshToken = refreshToken;
     user.updatedAt = timestamp;
 
+    this._logger.debug(`User: ${user.email}, RT Length: ${refreshToken?.length}`);
+
     // Controlo que el modelo no tenga errores antes de guardar
     const errors = await validate(user);
     if (errors && errors.length > 0) {
       this._logger.debug("Error: Not Acceptable");
+      console.log('VALIDATION ERRORS:', JSON.stringify(errors, null, 2));
       throw new NotAcceptableException("Error: Not Acceptable");
     }
 
